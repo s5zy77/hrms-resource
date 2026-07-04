@@ -7,15 +7,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#2563EB',       // Clean, professional blue
-        primaryHover: '#1D4ED8',
-        surface: '#FFFFFF',
-        background: '#F8FAFC',    // Subtle slate background
-        textPrimary: '#0F172A',
+        primary: '#7BC9F5',       // Soft dreamy sky blue
+        primaryHover: '#5AB8ED',
+        surface: '#FFFFFF/90',    // Slightly transparent surface
+        background: '#F0F9FF',    // Soft dreamy blueish-white background
+        textPrimary: '#1E293B',
         textSecondary: '#64748B',
-        borderLight: '#E2E8F0',
-        avatarBg: '#FEF08A',      // Light yellow as requested
-        avatarText: '#854D0E',    // Dark yellow/brown for contrast
+        borderLight: '#E0F2FE',
+        avatarBg: '#FFECA1',      // Dreamy soft golden glow
+        avatarText: '#A17200',    // Soft warm amber text
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
