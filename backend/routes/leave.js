@@ -37,6 +37,7 @@ try {
 }
 
 router.post('/apply', auth, leaveController.applyLeave);
+router.post('/allocate', auth, roleCheck(['admin']), leaveController.allocateLeave);
 router.put('/:id/approve', auth, roleCheck(['admin']), leaveController.approveLeave);
 router.put('/:id/reject', auth, roleCheck(['admin']), leaveController.rejectLeave);
 router.get('/calendar', auth, leaveController.getCalendarLeaves);

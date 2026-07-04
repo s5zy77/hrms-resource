@@ -268,3 +268,35 @@ exports.getAllLeaves = async (req, res) => {
     });
   }
 };
+
+// POST /api/leave/allocate
+exports.allocateLeave = async (req, res) => {
+  try {
+    const { employeeId, type, days } = req.body;
+    if (!employeeId || !type || days === undefined) {
+      return res.status(400).json({ success: false, message: 'Missing fields' });
+    }
+    
+    // Dynamically load Employee model
+    let Emp;
+    try {
+      Emp = require('../models/Employee');
+    } catch(e) {}
+
+    if (Emp) {
+      const balanceField = type === 'Paid' ? 'paidBalance' : 'sickBalance';
+      const updated = await Emp.findOneAndUpdate(
+        { employeeId: employeeId },
+        { $inc: { [balanceField]: days } },
+        { new: true }
+      );
+      if (!updated) {
+        return res.status(404).json({ success: false, message: 'Employee not found' });
+      }
+    }
+    
+    res.status(200).json({ success: true, message: `Successfully allocated ${days} ${type} leave days.` });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

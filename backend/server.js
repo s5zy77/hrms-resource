@@ -14,11 +14,13 @@ app.use(express.json());
 const attendanceRoutes = require('./routes/attendance');
 const leaveRoutes = require('./routes/leave');
 const salaryRoutes = require('./routes/salary');
+const employeeRoutes = require('./routes/employee');
 
 // Routes mount
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/leave', leaveRoutes);
 app.use('/api/salary', salaryRoutes);
+app.use('/api/employees', employeeRoutes);
 
 // Base route checker
 app.get('/health', (req, res) => {
