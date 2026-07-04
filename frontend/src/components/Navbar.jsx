@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -9,13 +9,106 @@ export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
-  const { isAuthenticated, logout } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [hasCheckedOutToday, setHasCheckedOutToday] = useState(false);
 
-  const navLinks = [
-    { name: 'Employees', path: '/employees' },
-    { name: 'Attendance', path: '/attendance' },
-    { name: 'Time Off', path: '/time-off' },
-  ];
+  const { isAuthenticated, logout, user } = useAuth();
+  const employeeId = user?.employeeId || localStorage.getItem('employeeId') || 'mock-employee-id';
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchTodayStatus();
+    }
+  }, [employeeId, isAuthenticated]);
+
+  const fetchTodayStatus = async () => {
+    try {
+      const res = await fetch(`/api/attendance/my?employeeId=${employeeId}`, {
+        headers: {
+          'x-employee-id': employeeId
+        }
+      });
+      const result = await res.json();
+      if (result.success && result.data && result.data.length > 0) {
+        const latest = result.data[0];
+        const recordDate = new Date(latest.date).toDateString();
+        const todayDate = new Date().toDateString();
+        
+        if (recordDate === todayDate) {
+          if (latest.checkIn && !latest.checkOut) {
+            setIsCheckedIn(true);
+            setHasCheckedOutToday(false);
+          } else if (latest.checkOut) {
+            setIsCheckedIn(false);
+            setHasCheckedOutToday(true);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not fetch real attendance status, using local storage fallback:", e);
+      const localStatus = localStorage.getItem('isCheckedIn') === 'true';
+      const localOut = localStorage.getItem('hasCheckedOutToday') === 'true';
+      setIsCheckedIn(localStatus);
+      setHasCheckedOutToday(localOut);
+    }
+  };
+
+  const handleCheckInOut = async () => {
+    if (hasCheckedOutToday) {
+      toast.error("You have already checked out today.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const endpoint = isCheckedIn ? '/api/attendance/check-out' : '/api/attendance/check-in';
+      const method = isCheckedIn ? 'PUT' : 'POST';
+      
+      const res = await fetch(endpoint, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-employee-id': employeeId
+        },
+        body: JSON.stringify({ employeeId })
+      });
+      const result = await res.json();
+      
+      if (result.success) {
+        if (!isCheckedIn) {
+          setIsCheckedIn(true);
+          setHasCheckedOutToday(false);
+          localStorage.setItem('isCheckedIn', 'true');
+          localStorage.setItem('hasCheckedOutToday', 'false');
+          toast.success("Checked in successfully! 👋");
+        } else {
+          setIsCheckedIn(false);
+          setHasCheckedOutToday(true);
+          localStorage.setItem('isCheckedIn', 'false');
+          localStorage.setItem('hasCheckedOutToday', 'true');
+          toast.success("Checked out successfully! Have a great day.");
+        }
+        fetchTodayStatus();
+      } else {
+        toast.error(result.message || 'Operation failed');
+      }
+    } catch (e) {
+      const nextState = !isCheckedIn;
+      setIsCheckedIn(nextState);
+      if (nextState) {
+        setHasCheckedOutToday(false);
+        localStorage.setItem('isCheckedIn', 'true');
+        localStorage.setItem('hasCheckedOutToday', 'false');
+      } else {
+        setHasCheckedOutToday(true);
+        localStorage.setItem('isCheckedIn', 'false');
+        localStorage.setItem('hasCheckedOutToday', 'true');
+      }
+      toast.success(`Demo Mode: Check-${nextState ? 'in' : 'out'} recorded locally!`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -23,6 +116,12 @@ export default function Navbar() {
     navigate('/signin');
     setIsMobileMenuOpen(false);
   };
+
+  const navLinks = [
+    { name: 'Employees', path: '/employees' },
+    { name: 'Attendance', path: '/attendance' },
+    { name: 'Time Off', path: '/time-off' },
+  ];
 
   return (
     <nav className="bg-surface border-b border-borderLight px-4 md:px-8 py-3.5 sticky top-0 z-50">
@@ -64,14 +163,17 @@ export default function Navbar() {
             {/* Desktop Controls */}
             <div className="hidden md:flex items-center space-x-6 relative">
               <button 
-                onClick={() => setIsCheckedIn(!isCheckedIn)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  isCheckedIn 
-                    ? 'bg-red-50 text-red-600 hover:bg-red-100' 
-                    : 'bg-green-50 text-green-700 hover:bg-green-100'
+                onClick={handleCheckInOut}
+                disabled={loading}
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                  hasCheckedOutToday
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : isCheckedIn 
+                      ? 'bg-red-50 text-red-600 hover:bg-red-100' 
+                      : 'bg-green-50 text-green-700 hover:bg-green-100'
                 }`}
               >
-                {isCheckedIn ? 'Check Out' : 'Check In →'}
+                {loading ? 'Processing...' : hasCheckedOutToday ? 'Checked Out' : isCheckedIn ? 'Check Out' : 'Check In →'}
               </button>
 
               <div className="relative">
@@ -80,9 +182,9 @@ export default function Navbar() {
                   className="flex items-center gap-2 focus:outline-none"
                 >
                   <div className="w-10 h-10 rounded-full bg-avatarBg text-avatarText flex items-center justify-center text-sm font-semibold shadow-sm border border-borderLight hover:border-gray-300 transition-all">
-                    AG
+                    {user?.name ? user.name.split(' ').map(n => n[0]).join('') : 'AG'}
                   </div>
-                  <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white"></div>
+                  <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${isCheckedIn ? 'bg-green-500' : 'bg-red-500'}`}></div>
                 </button>
 
                 {isDropdownOpen && (
@@ -129,14 +231,17 @@ export default function Navbar() {
         <div className="md:hidden mt-4 pb-4 border-t border-borderLight animate-fade-in">
           <div className="flex flex-col space-y-2 mt-4">
             <button 
-              onClick={() => setIsCheckedIn(!isCheckedIn)}
+              onClick={handleCheckInOut}
+              disabled={loading}
               className={`px-4 py-3 rounded-lg text-sm font-bold text-center transition-all ${
-                isCheckedIn 
-                  ? 'bg-red-50 text-red-600' 
-                  : 'bg-green-50 text-green-700'
+                hasCheckedOutToday
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : isCheckedIn 
+                    ? 'bg-red-50 text-red-600' 
+                    : 'bg-green-50 text-green-700'
               }`}
             >
-              {isCheckedIn ? 'Check Out' : 'Check In →'}
+              {loading ? 'Processing...' : hasCheckedOutToday ? 'Checked Out' : isCheckedIn ? 'Check Out' : 'Check In →'}
             </button>
             
             {navLinks.map((link) => (
