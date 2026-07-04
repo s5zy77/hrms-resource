@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const mockEmployees = [
@@ -12,7 +12,16 @@ const mockEmployees = [
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Simulate API fetch delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500); // 1.5 seconds loading for effect
+    return () => clearTimeout(timer);
+  }, []);
 
   const filteredEmployees = useMemo(() => {
     return mockEmployees.filter(emp => {
@@ -42,12 +51,25 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {filteredEmployees.length === 0 ? (
-        <div className="text-center py-20 text-textSecondary bg-surface rounded-xl border border-borderLight shadow-sm">
+      {isLoading ? (
+        // Skeleton Loaders
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="glass-card p-6 flex items-center gap-5">
+              <div className="w-16 h-16 rounded-full bg-borderLight animate-pulse"></div>
+              <div className="space-y-3 flex-1">
+                <div className="h-4 bg-borderLight rounded w-3/4 animate-pulse"></div>
+                <div className="h-3 bg-borderLight rounded w-1/2 animate-pulse"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filteredEmployees.length === 0 ? (
+        <div className="text-center py-20 text-textSecondary bg-surface rounded-xl border border-borderLight shadow-sm animate-fade-in">
           No employees found matching "{searchQuery}"
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
           {filteredEmployees.map((emp) => (
             <div 
               key={emp.id} 
