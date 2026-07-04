@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -7,18 +7,116 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
-  const { isAuthenticated, logout } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [hasCheckedOutToday, setHasCheckedOutToday] = useState(false);
+
+  const { isAuthenticated, logout, user } = useAuth();
+  
+  const employeeId = user?.employeeId || localStorage.getItem('employeeId') || 'mock-employee-id';
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchTodayStatus();
+    }
+  }, [employeeId, isAuthenticated]);
+
+  const fetchTodayStatus = async () => {
+    try {
+      const res = await fetch(`/api/attendance/my?employeeId=${employeeId}`, {
+        headers: {
+          'x-employee-id': employeeId
+        }
+      });
+      const result = await res.json();
+      if (result.success && result.data && result.data.length > 0) {
+        const latest = result.data[0];
+        const recordDate = new Date(latest.date).toDateString();
+        const todayDate = new Date().toDateString();
+        
+        if (recordDate === todayDate) {
+          if (latest.checkIn && !latest.checkOut) {
+            setIsCheckedIn(true);
+            setHasCheckedOutToday(false);
+          } else if (latest.checkOut) {
+            setIsCheckedIn(false);
+            setHasCheckedOutToday(true);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not fetch real attendance status, using local storage fallback:", e);
+      const localStatus = localStorage.getItem('isCheckedIn') === 'true';
+      const localOut = localStorage.getItem('hasCheckedOutToday') === 'true';
+      setIsCheckedIn(localStatus);
+      setHasCheckedOutToday(localOut);
+    }
+  };
+
+  const handleCheckInOut = async () => {
+    if (hasCheckedOutToday) {
+      alert("You have already checked out today.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const endpoint = isCheckedIn ? '/api/attendance/check-out' : '/api/attendance/check-in';
+      const method = isCheckedIn ? 'PUT' : 'POST';
+      
+      const res = await fetch(endpoint, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-employee-id': employeeId
+        },
+        body: JSON.stringify({ employeeId })
+      });
+      const result = await res.json();
+      
+      if (result.success) {
+        if (!isCheckedIn) {
+          setIsCheckedIn(true);
+          setHasCheckedOutToday(false);
+          localStorage.setItem('isCheckedIn', 'true');
+          localStorage.setItem('hasCheckedOutToday', 'false');
+        } else {
+          setIsCheckedIn(false);
+          setHasCheckedOutToday(true);
+          localStorage.setItem('isCheckedIn', 'false');
+          localStorage.setItem('hasCheckedOutToday', 'true');
+        }
+        fetchTodayStatus();
+      } else {
+        alert(result.message || 'Operation failed');
+      }
+    } catch (e) {
+      const nextState = !isCheckedIn;
+      setIsCheckedIn(nextState);
+      if (nextState) {
+        setHasCheckedOutToday(false);
+        localStorage.setItem('isCheckedIn', 'true');
+        localStorage.setItem('hasCheckedOutToday', 'false');
+      } else {
+        setHasCheckedOutToday(true);
+        localStorage.setItem('isCheckedIn', 'false');
+        localStorage.setItem('hasCheckedOutToday', 'true');
+      }
+      alert(`Demo Mode: Check-${nextState ? 'in' : 'out'} recorded locally!`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/signin');
+  };
 
   const navLinks = [
     { name: 'Employees', path: '/employees' },
     { name: 'Attendance', path: '/attendance' },
     { name: 'Time Off', path: '/time-off' },
   ];
-
-  const handleLogout = () => {
-    logout();
-    navigate('/signin');
-  };
 
   return (
     <nav className="bg-surface border-b border-borderLight px-8 py-3.5 flex items-center justify-between sticky top-0 z-50">
@@ -58,14 +156,17 @@ export default function Navbar() {
         <div className="flex items-center space-x-6 relative">
           {/* Check In Button */}
           <button 
-            onClick={() => setIsCheckedIn(!isCheckedIn)}
+            onClick={handleCheckInOut}
+            disabled={loading}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              isCheckedIn 
-                ? 'bg-red-50 text-red-600 hover:bg-red-100' 
-                : 'bg-green-50 text-green-700 hover:bg-green-100'
+              hasCheckedOutToday
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : isCheckedIn 
+                  ? 'bg-red-50 text-red-600 hover:bg-red-100' 
+                  : 'bg-green-50 text-green-700 hover:bg-green-100'
             }`}
           >
-            {isCheckedIn ? 'Check Out' : 'Check In →'}
+            {loading ? 'Processing...' : hasCheckedOutToday ? 'Checked Out' : isCheckedIn ? 'Check Out' : 'Check In →'}
           </button>
 
           {/* Avatar Dropdown Wrapper */}
@@ -74,11 +175,10 @@ export default function Navbar() {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-2 focus:outline-none"
             >
-              {/* The Light Yellow Profile DP as requested */}
               <div className="w-10 h-10 rounded-full bg-avatarBg text-avatarText flex items-center justify-center text-sm font-semibold shadow-sm border border-borderLight hover:border-gray-300 transition-all">
-                AG
+                {user?.name ? user.name.split(' ').map(n => n[0]).join('') : 'JD'}
               </div>
-              <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white"></div>
+              <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${isCheckedIn ? 'bg-green-500' : 'bg-red-500'}`}></div>
             </button>
 
             {/* Dropdown Menu */}
