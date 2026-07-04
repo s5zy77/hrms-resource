@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import toast from 'react-hot-toast';
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -26,7 +25,6 @@ export default function SignIn() {
 
     // Mock successful login
     login();
-    toast.success('Successfully signed in!', { icon: '👋' });
     navigate('/employees');
   };
 

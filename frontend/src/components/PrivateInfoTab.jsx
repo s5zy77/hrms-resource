@@ -1,13 +1,9 @@
 import { useState } from 'react';
-import toast from 'react-hot-toast';
 
 export default function PrivateInfoTab() {
   const [isEditing, setIsEditing] = useState(false);
 
   const handleToggleEdit = () => {
-    if (isEditing) {
-      toast.success('Private information updated successfully!');
-    }
     setIsEditing(!isEditing);
   };
 

@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from './components/Navbar';
 import SignIn from './pages/SignIn';
@@ -54,19 +53,6 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <div className="min-h-screen">
-          <Toaster 
-            position="bottom-right" 
-            toastOptions={{
-              style: {
-                background: '#ffffff',
-                color: '#1a1f36',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                borderRadius: '0.75rem',
-                fontWeight: '500'
-              },
-            }}
-          />
           <Navbar />
           <div className="pt-16">
             <AnimatedRoutes />

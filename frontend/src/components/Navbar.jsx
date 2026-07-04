@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import toast from 'react-hot-toast';
 
 export default function Navbar() {
   const location = useLocation();
@@ -55,7 +54,7 @@ export default function Navbar() {
 
   const handleCheckInOut = async () => {
     if (hasCheckedOutToday) {
-      toast.error("You have already checked out today.");
+      alert("You have already checked out today.");
       return;
     }
 
@@ -80,17 +79,17 @@ export default function Navbar() {
           setHasCheckedOutToday(false);
           localStorage.setItem('isCheckedIn', 'true');
           localStorage.setItem('hasCheckedOutToday', 'false');
-          toast.success("Checked in successfully! 👋");
+          alert("Checked in successfully! 👋");
         } else {
           setIsCheckedIn(false);
           setHasCheckedOutToday(true);
           localStorage.setItem('isCheckedIn', 'false');
           localStorage.setItem('hasCheckedOutToday', 'true');
-          toast.success("Checked out successfully! Have a great day.");
+          alert("Checked out successfully! Have a great day.");
         }
         fetchTodayStatus();
       } else {
-        toast.error(result.message || 'Operation failed');
+        alert(result.message || 'Operation failed');
       }
     } catch (e) {
       const nextState = !isCheckedIn;
@@ -104,7 +103,7 @@ export default function Navbar() {
         localStorage.setItem('isCheckedIn', 'false');
         localStorage.setItem('hasCheckedOutToday', 'true');
       }
-      toast.success(`Demo Mode: Check-${nextState ? 'in' : 'out'} recorded locally!`);
+      alert(`Demo Mode: Check-${nextState ? 'in' : 'out'} recorded locally!`);
     } finally {
       setLoading(false);
     }
@@ -112,7 +111,6 @@ export default function Navbar() {
 
   const handleLogout = () => {
     logout();
-    toast.success('Successfully logged out.');
     navigate('/signin');
     setIsMobileMenuOpen(false);
   };
