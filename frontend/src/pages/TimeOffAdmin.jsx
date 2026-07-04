@@ -1,0 +1,509 @@
+import React, { useState, useEffect } from 'react';
+
+const TimeOffAdmin = () => {
+  const [activeTab, setActiveTab] = useState('Time Off');
+  const [requests, setRequests] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
+
+  // Allocation forms state
+  const [allocEmployeeId, setAllocEmployeeId] = useState('');
+  const [allocType, setAllocType] = useState('Paid');
+  const [allocDays, setAllocDays] = useState(0);
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const fetchRequests = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/leave/all');
+      const result = await response.json();
+      if (result.success) {
+        setRequests(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching admin leave requests:', error);
+      // Fallback mock records
+      setRequests([
+        {
+          _id: '1',
+          employee: { name: 'Alex Mercer', employeeId: 'OIJ20260001' },
+          type: 'Paid',
+          startDate: '2026-07-06',
+          endDate: '2026-07-08',
+          allocationDays: 3,
+          status: 'Pending',
+          attachment: null
+        },
+        {
+          _id: '2',
+          employee: { name: 'Sarah Connor', employeeId: 'OIJ20260002' },
+          type: 'Sick',
+          startDate: '2026-07-15',
+          endDate: '2026-07-16',
+          allocationDays: 2,
+          status: 'Approved',
+          attachment: 'medical_excuse.pdf'
+        },
+        {
+          _id: '3',
+          employee: { name: 'John Doe', employeeId: 'OIJ20260003' },
+          type: 'Unpaid',
+          startDate: '2026-07-22',
+          endDate: '2026-07-24',
+          allocationDays: 3,
+          status: 'Pending',
+          attachment: null
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAction = async (id, action) => {
+    try {
+      const response = await fetch(`/api/leave/${id}/${action}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const result = await response.json();
+      if (result.success) {
+        setMessage(`Request successfully ${action === 'approve' ? 'approved' : 'rejected'}.`);
+        fetchRequests();
+      } else {
+        setMessage(result.message || 'Action failed.');
+      }
+    } catch (error) {
+      console.error(`Error processing leave ${action}:`, error);
+      // Mock action state local update
+      setRequests(prev =>
+        prev.map(r => (r._id === id ? { ...r, status: action === 'approve' ? 'Approved' : 'Rejected' } : r))
+      );
+      setMessage(`Mock Request successfully ${action === 'approve' ? 'Approved' : 'Rejected'}.`);
+    }
+  };
+
+  const handleCreateAllocation = async (e) => {
+    e.preventDefault();
+    if (!allocEmployeeId || allocDays <= 0) {
+      setMessage('Please fill in valid Employee ID and Days.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/leave/allocate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employeeId: allocEmployeeId,
+          type: allocType,
+          days: allocDays
+        })
+      });
+      const result = await response.json();
+      if (result.success) {
+        setMessage('Leave allocation created successfully.');
+        setAllocEmployeeId('');
+        setAllocDays(0);
+      } else {
+        setMessage(result.message || 'Failed to allocate.');
+      }
+    } catch (err) {
+      console.error('Error allocating leaves:', err);
+      setMessage(`Mock Allocation: ${allocDays} ${allocType} days assigned to employee ${allocEmployeeId}.`);
+      setAllocEmployeeId('');
+      setAllocDays(0);
+    }
+  };
+
+  const filteredRequests = requests.filter(r => {
+    const name = r.employee?.name || '';
+    const empId = r.employee?.employeeId || '';
+    const query = searchQuery.toLowerCase();
+    return name.toLowerCase().includes(query) || empId.toLowerCase().includes(query);
+  });
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.pageHeader}>
+        <h2 style={styles.pageTitle}>Time Off Dashboard (Admin)</h2>
+        <div style={styles.tabContainer}>
+          <button
+            onClick={() => setActiveTab('Time Off')}
+            style={activeTab === 'Time Off' ? styles.activeTab : styles.tab}
+          >
+            Time Off Requests
+          </button>
+          <button
+            onClick={() => setActiveTab('Allocation')}
+            style={activeTab === 'Allocation' ? styles.activeTab : styles.tab}
+          >
+            Leave Allocations
+          </button>
+        </div>
+      </div>
+
+      {message && <div style={styles.notification}>{message}</div>}
+
+      {activeTab === 'Time Off' ? (
+        <div style={styles.contentCard}>
+          <div style={styles.filterBar}>
+            <input
+              type="text"
+              placeholder="Search by Employee Name or ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={styles.searchInput}
+            />
+          </div>
+
+          {loading ? (
+            <p>Loading requests...</p>
+          ) : filteredRequests.length === 0 ? (
+            <p style={{ color: '#888', padding: '12px' }}>No leave requests found.</p>
+          ) : (
+            <div style={styles.tableWrapper}>
+              <table style={styles.table}>
+                <thead>
+                  <tr style={styles.tableHeadRow}>
+                    <th style={styles.th}>Employee</th>
+                    <th style={styles.th}>ID</th>
+                    <th style={styles.th}>Leave Type</th>
+                    <th style={styles.th}>Period</th>
+                    <th style={styles.th}>Days</th>
+                    <th style={styles.th}>Document</th>
+                    <th style={styles.th}>Status</th>
+                    <th style={styles.th}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRequests.map((r) => (
+                    <tr key={r._id} style={styles.tableRow}>
+                      <td style={{ ...styles.td, fontWeight: '600', color: '#714B67' }}>
+                        {r.employee?.name}
+                      </td>
+                      <td style={styles.td}>{r.employee?.employeeId}</td>
+                      <td style={styles.td}>{r.type}</td>
+                      <td style={styles.td}>
+                        {new Date(r.startDate).toLocaleDateString()} - {new Date(r.endDate).toLocaleDateString()}
+                      </td>
+                      <td style={styles.td}>{r.allocationDays}</td>
+                      <td style={styles.td}>
+                        {r.attachment ? (
+                          <a href={`/uploads/${r.attachment}`} target="_blank" rel="noopener noreferrer" style={styles.link}>
+                            📄 View File
+                          </a>
+                        ) : (
+                          <span style={{ color: '#aaa' }}>None</span>
+                        )}
+                      </td>
+                      <td style={styles.td}>
+                        <span style={
+                          r.status === 'Approved' ? styles.statusApproved :
+                          r.status === 'Rejected' ? styles.statusRejected :
+                          styles.statusPending
+                        }>
+                          {r.status}
+                        </span>
+                      </td>
+                      <td style={styles.td}>
+                        {r.status === 'Pending' ? (
+                          <div style={styles.actionGroup}>
+                            <button
+                              onClick={() => handleAction(r._id, 'approve')}
+                              style={styles.approveBtn}
+                              title="Approve Leave"
+                            >
+                              🟢 Approve
+                            </button>
+                            <button
+                              onClick={() => handleAction(r._id, 'reject')}
+                              style={styles.rejectBtn}
+                              title="Reject Leave"
+                            >
+                              🔴 Reject
+                            </button>
+                          </div>
+                        ) : (
+                          <span style={{ color: '#aaa', fontSize: '13px' }}>Completed</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Allocation Tab */
+        <div style={styles.contentCard}>
+          <h3 style={styles.sectionTitle}>Add Leave Balance Allocation</h3>
+          <form onSubmit={handleCreateAllocation} style={styles.form}>
+            <div style={styles.fieldGroup}>
+              <label style={styles.label}>Employee ID</label>
+              <input
+                type="text"
+                placeholder="e.g. OIJ20260001"
+                value={allocEmployeeId}
+                onChange={(e) => setAllocEmployeeId(e.target.value)}
+                required
+                style={styles.input}
+              />
+            </div>
+            <div style={styles.fieldGroup}>
+              <label style={styles.label}>Time Off Type</label>
+              <select
+                value={allocType}
+                onChange={(e) => setAllocType(e.target.value)}
+                style={styles.select}
+              >
+                <option value="Paid">Paid Time Off</option>
+                <option value="Sick">Sick Time Off</option>
+              </select>
+            </div>
+            <div style={styles.fieldGroup}>
+              <label style={styles.label}>Allocation Days</label>
+              <input
+                type="number"
+                value={allocDays}
+                onChange={(e) => setAllocDays(parseInt(e.target.value) || 0)}
+                min="1"
+                required
+                style={styles.input}
+              />
+            </div>
+            <button type="submit" style={styles.submitBtn}>
+              Allocate Days
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const styles = {
+  container: {
+    padding: '24px',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    fontFamily: "'Inter', sans-serif",
+    backgroundColor: '#fcfcfc',
+    minHeight: '100vh'
+  },
+  pageHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '24px',
+    borderBottom: '1px solid #eaeaea',
+    paddingBottom: '12px'
+  },
+  pageTitle: {
+    margin: 0,
+    fontSize: '24px',
+    color: '#714B67',
+    fontWeight: '700'
+  },
+  tabContainer: {
+    display: 'flex',
+    gap: '10px'
+  },
+  tab: {
+    padding: '8px 16px',
+    backgroundColor: '#fff',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    color: '#666',
+    fontWeight: '500',
+    fontSize: '14px',
+    transition: 'all 0.2s'
+  },
+  activeTab: {
+    padding: '8px 16px',
+    backgroundColor: '#714B67',
+    border: '1px solid #714B67',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    color: '#fff',
+    fontWeight: '500',
+    fontSize: '14px',
+    transition: 'all 0.2s'
+  },
+  notification: {
+    padding: '12px 16px',
+    backgroundColor: 'rgba(113, 75, 103, 0.1)',
+    color: '#714B67',
+    borderRadius: '6px',
+    fontSize: '14px',
+    marginBottom: '20px',
+    border: '1px solid rgba(113, 75, 103, 0.2)'
+  },
+  contentCard: {
+    backgroundColor: '#fff',
+    borderRadius: '12px',
+    padding: '24px',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)'
+  },
+  filterBar: {
+    marginBottom: '20px'
+  },
+  searchInput: {
+    width: '100%',
+    padding: '10px 14px',
+    borderRadius: '8px',
+    border: '1px solid #ccc',
+    fontSize: '14px',
+    outline: 'none',
+    boxSizing: 'border-box'
+  },
+  tableWrapper: {
+    overflowX: 'auto'
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    fontSize: '14px'
+  },
+  tableHeadRow: {
+    borderBottom: '2px solid #eee',
+    textAlign: 'left'
+  },
+  th: {
+    padding: '12px 10px',
+    color: '#666',
+    fontWeight: '600'
+  },
+  tableRow: {
+    borderBottom: '1px solid #f2f2f2'
+  },
+  td: {
+    padding: '12px 10px',
+    color: '#333',
+    verticalAlign: 'middle'
+  },
+  link: {
+    color: '#714B67',
+    textDecoration: 'none',
+    fontWeight: '500'
+  },
+  statusApproved: {
+    padding: '4px 8px',
+    borderRadius: '12px',
+    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+    color: '#28A745',
+    fontSize: '12px',
+    fontWeight: '600'
+  },
+  statusRejected: {
+    padding: '4px 8px',
+    borderRadius: '12px',
+    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+    color: '#DC3545',
+    fontSize: '12px',
+    fontWeight: '600'
+  },
+  statusPending: {
+    padding: '4px 8px',
+    borderRadius: '12px',
+    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+    color: '#FD7E14',
+    fontSize: '12px',
+    fontWeight: '600'
+  },
+  actionGroup: {
+    display: 'flex',
+    gap: '8px'
+  },
+  approveBtn: {
+    padding: '6px 12px',
+    border: '1px solid #28A745',
+    borderRadius: '6px',
+    backgroundColor: '#fff',
+    color: '#28A745',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: '600',
+    transition: 'all 0.2s',
+    ':hover': {
+      backgroundColor: '#28A745',
+      color: '#fff'
+    }
+  },
+  rejectBtn: {
+    padding: '6px 12px',
+    border: '1px solid #DC3545',
+    borderRadius: '6px',
+    backgroundColor: '#fff',
+    color: '#DC3545',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: '600',
+    transition: 'all 0.2s',
+    ':hover': {
+      backgroundColor: '#DC3545',
+      color: '#fff'
+    }
+  },
+  sectionTitle: {
+    margin: '0 0 20px 0',
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#333'
+  },
+  form: {
+    maxWidth: '450px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px'
+  },
+  fieldGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px'
+  },
+  label: {
+    fontSize: '13px',
+    fontWeight: '500',
+    color: '#666'
+  },
+  input: {
+    padding: '10px 12px',
+    borderRadius: '6px',
+    border: '1px solid #ccc',
+    fontSize: '14px',
+    outline: 'none'
+  },
+  select: {
+    padding: '10px 12px',
+    borderRadius: '6px',
+    border: '1px solid #ccc',
+    fontSize: '14px',
+    outline: 'none',
+    backgroundColor: '#fff'
+  },
+  submitBtn: {
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '6px',
+    backgroundColor: '#714B67',
+    color: '#ffffff',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '600',
+    transition: 'background 0.2s',
+    alignSelf: 'flex-start',
+    marginTop: '8px',
+    ':hover': {
+      backgroundColor: '#583a50'
+    }
+  }
+};
+
+export default TimeOffAdmin;
