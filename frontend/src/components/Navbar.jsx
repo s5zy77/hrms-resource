@@ -142,10 +142,10 @@ export default function Navbar() {
         <div className="flex items-center space-x-12">
           {/* Brand Logo */}
           <Link to={isAuthenticated ? "/employees" : "/signin"} className="text-xl font-bold text-textPrimary flex items-center gap-2.5 hover:opacity-80 transition-opacity tracking-tight">
-            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-white shadow-sm text-sm">
-              HR
+            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-white shadow-sm text-sm font-bold">
+              NX
             </div>
-            AeroLeave
+            Nexus
           </Link>
           
           {/* Navigation Tabs (Desktop) */}

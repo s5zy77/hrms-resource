@@ -69,7 +69,7 @@ export default function Dashboard() {
   const steps = [
     {
       target: '.admin-directory-header',
-      content: 'Welcome to AeroLeave Admin! Here is your employee directory.',
+      content: 'Welcome to Nexus Admin! Here is your employee directory.',
       disableBeacon: true,
       placement: 'bottom-start'
     },
