@@ -1,14 +1,22 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function PrivateInfoTab() {
   const [isEditing, setIsEditing] = useState(false);
+
+  const handleToggleEdit = () => {
+    if (isEditing) {
+      toast.success('Private information updated successfully!');
+    }
+    setIsEditing(!isEditing);
+  };
 
   return (
     <div className="opacity-100 transition-opacity duration-300 space-y-8 animate-fade-in">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-textPrimary tracking-tight">Private Information</h2>
         <button 
-          onClick={() => setIsEditing(!isEditing)}
+          onClick={handleToggleEdit}
           className={`px-4 py-2 rounded-lg font-bold text-sm transition-all shadow-sm ${
             isEditing 
               ? 'bg-green-500 text-white hover:bg-green-600' 

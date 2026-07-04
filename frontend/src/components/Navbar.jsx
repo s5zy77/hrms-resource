@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 export default function Navbar() {
   const location = useLocation();
@@ -18,6 +19,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     logout();
+    toast.success('Successfully logged out.');
     navigate('/signin');
     setIsMobileMenuOpen(false);
   };
