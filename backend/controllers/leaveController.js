@@ -112,17 +112,26 @@ exports.approveLeave = async (req, res) => {
       });
     }
 
-    // Deduct leave balance if Employee model is available
-    if (Employee) {
-      const emp = await Employee.findById(leave.employee);
-      if (emp) {
-        if (leave.type === 'Paid') {
-          emp.paidBalance = Math.max(0, emp.paidBalance - leave.allocationDays);
-        } else if (leave.type === 'Sick') {
-          emp.sickBalance = Math.max(0, emp.sickBalance - leave.allocationDays);
-        }
-        emp.attendanceStatus = 'leave';
-        await emp.save();
+    // Atomic update preventing double deduction or balance going negative
+    if (Employee && (leave.type === 'Paid' || leave.type === 'Sick')) {
+      const balanceField = leave.type === 'Paid' ? 'paidBalance' : 'sickBalance';
+      const updatedEmployee = await Employee.findOneAndUpdate(
+        { 
+          _id: leave.employee, 
+          [balanceField]: { $gte: leave.allocationDays } 
+        },
+        { 
+          $inc: { [balanceField]: -leave.allocationDays },
+          $set: { attendanceStatus: 'leave' }
+        },
+        { new: true }
+      );
+      
+      if (!updatedEmployee) {
+        return res.status(400).json({
+          success: false,
+          message: 'Insufficient balance to approve this leave request'
+        });
       }
     }
 

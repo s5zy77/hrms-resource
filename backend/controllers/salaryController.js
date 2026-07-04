@@ -11,6 +11,14 @@ function getDaysInMonth(year, month) {
 exports.getSalary = async (req, res) => {
   try {
     const employeeId = req.params.id;
+    
+    // Ensure only admins or the employee themselves can access this profile
+    if (req.user && req.user.role !== 'admin' && req.user.employeeId !== employeeId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access Denied: You cannot view another employee\'s salary configuration'
+      });
+    }
     let salary = await Salary.findOne({ employee: employeeId });
     
     if (!salary) {
@@ -188,6 +196,26 @@ exports.getPayslip = async (req, res) => {
       // Fallback if Attendance model isn't populated/ready
     }
 
+    // Check for mid-month hire proration
+    let prorationFactor = 1.0;
+    try {
+      const Employee = require('../models/Employee');
+      if (Employee) {
+        const emp = await Employee.findById(employeeId);
+        if (emp && emp.dateOfJoining) {
+          const doJ = new Date(emp.dateOfJoining);
+          if (doJ > startOfMonth && doJ <= endOfMonth) {
+            const activeDays = daysInMonth - doJ.getDate() + 1;
+            prorationFactor = activeDays / daysInMonth;
+          }
+        }
+      }
+    } catch (e) {
+      // Employee model not ready or imported
+    }
+
+    const adjustedWage = Math.round((salary.monthlyWage * prorationFactor) * 100) / 100;
+    
     // Daily rate for unpaid deduction: Wage / Total calendar days in month
     const dailyRate = salary.monthlyWage / daysInMonth;
     // Unpaid leave deduction
@@ -196,15 +224,15 @@ exports.getPayslip = async (req, res) => {
     // Absence deduction (absences with no approved leave)
     const absenceDeduction = Math.round((dailyRate * absentDays) * 100) / 100;
 
-    // Recalculate components
-    const calculated = calculateSalary(salary.monthlyWage, salary.pfRate, salary.profTax);
+    // Recalculate components using adjusted wage due to proration
+    const calculated = calculateSalary(adjustedWage, salary.pfRate, salary.profTax);
 
     const basic = calculated.components.basic;
     const employeePf = calculated.deductions.employeePf;
     const professionalTax = calculated.deductions.professionalTax;
 
     const totalDeductions = Math.round((employeePf + professionalTax + unpaidDeduction + absenceDeduction) * 100) / 100;
-    const netSalary = Math.max(0, Math.round((salary.monthlyWage - totalDeductions) * 100) / 100);
+    const netSalary = Math.max(0, Math.round((adjustedWage - totalDeductions) * 100) / 100);
 
     res.status(200).json({
       success: true,
