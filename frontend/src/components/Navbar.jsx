@@ -13,28 +13,28 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="bg-cardWhite border-b border-pastelBlueLight/30 px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
+    <nav className="bg-surface border-b border-borderLight px-8 py-3.5 flex items-center justify-between sticky top-0 z-50">
       <div className="flex items-center space-x-12">
         {/* Brand Logo */}
-        <Link to="/employees" className="text-xl font-bold text-pastelBlueDark flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-pastelBlueLight to-pastelBlue flex items-center justify-center text-white shadow-sm">
+        <Link to="/employees" className="text-xl font-bold text-textPrimary flex items-center gap-2.5 hover:opacity-80 transition-opacity tracking-tight">
+          <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-white shadow-sm text-sm">
             HR
           </div>
-          <span className="tracking-wide">AeroLeave</span>
+          AeroLeave
         </Link>
         
         {/* Navigation Tabs */}
-        <div className="hidden md:flex space-x-2">
+        <div className="hidden md:flex space-x-1">
           {navLinks.map((link) => {
             const isActive = location.pathname.startsWith(link.path);
             return (
               <Link
                 key={link.name}
                 to={link.path}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
                   isActive 
-                    ? 'bg-pastelBlue/10 text-pastelBlueDark shadow-sm' 
-                    : 'text-textMuted hover:bg-pastelBlue/5 hover:text-pastelBlueDark'
+                    ? 'bg-background text-primary' 
+                    : 'text-textSecondary hover:bg-background hover:text-textPrimary'
                 }`}
               >
                 {link.name}
@@ -48,10 +48,10 @@ export default function Navbar() {
         {/* Check In Button */}
         <button 
           onClick={() => setIsCheckedIn(!isCheckedIn)}
-          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             isCheckedIn 
-              ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' 
-              : 'bg-green-50 text-green-600 border border-green-200 hover:bg-green-100'
+              ? 'bg-red-50 text-red-600 hover:bg-red-100' 
+              : 'bg-green-50 text-green-700 hover:bg-green-100'
           }`}
         >
           {isCheckedIn ? 'Check Out' : 'Check In →'}
@@ -63,21 +63,21 @@ export default function Navbar() {
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="flex items-center gap-2 focus:outline-none"
           >
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-pastelBlue to-pastelBlueLight text-white flex items-center justify-center font-bold shadow-md border-2 border-white hover:border-pastelBlueLight transition-all">
+            {/* The Light Yellow Profile DP as requested */}
+            <div className="w-10 h-10 rounded-full bg-avatarBg text-avatarText flex items-center justify-center text-sm font-semibold shadow-sm border border-borderLight hover:border-gray-300 transition-all">
               JD
             </div>
-            {/* Status Dot */}
-            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white"></div>
+            <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white"></div>
           </button>
 
           {/* Dropdown Menu */}
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-3 w-48 bg-white rounded-2xl shadow-xl border border-pastelBlueLight/30 overflow-hidden z-50">
-              <Link to="/profile" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-3 text-sm text-textMain hover:bg-bgWhite transition-colors font-semibold">
+            <div className="absolute right-0 mt-2 w-48 bg-surface rounded-xl shadow-soft border border-borderLight overflow-hidden z-50 py-1">
+              <Link to="/profile" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-textPrimary hover:bg-background transition-colors">
                 My Profile
               </Link>
-              <div className="h-px bg-bgWhite w-full"></div>
-              <button className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors font-semibold">
+              <div className="h-px bg-borderLight w-full my-1"></div>
+              <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
                 Log Out
               </button>
             </div>

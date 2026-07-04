@@ -6,28 +6,20 @@
 
 @layer base {
   body {
-    @apply bg-bgWhite text-textMain font-sans antialiased;
+    @apply bg-background text-textPrimary font-sans antialiased;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-cardWhite rounded-3xl shadow-sm border border-pastelBlueLight/30;
+    @apply bg-surface rounded-xl shadow-soft border border-borderLight;
   }
   
   .btn-primary {
-    @apply px-6 py-2.5 rounded-2xl bg-pastelBlue text-white font-semibold shadow-md hover:bg-pastelBlueDark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 active:scale-95;
-  }
-
-  .btn-secondary {
-    @apply px-6 py-2.5 rounded-2xl bg-pastelBlueLight/30 text-pastelBlueDark font-semibold hover:bg-pastelBlueLight/50 transition-all duration-200 active:scale-95;
+    @apply px-5 py-2.5 rounded-lg bg-primary text-white font-medium shadow-sm hover:bg-primaryHover hover:shadow transition-all duration-150 active:scale-95;
   }
 
   .input-field {
-    @apply w-full px-4 py-3 rounded-2xl border-2 border-pastelBlueLight/50 bg-white focus:outline-none focus:border-pastelBlue focus:ring-4 focus:ring-pastelBlueLight/30 transition-all duration-200;
-  }
-
-  .note-box {
-    @apply bg-softYellow border border-softYellowBorder text-yellow-800 p-4 rounded-2xl shadow-sm;
+    @apply w-full px-4 py-2.5 rounded-lg border border-borderLight bg-white focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-150 text-sm;
   }
 }
