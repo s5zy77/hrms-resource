@@ -178,16 +178,17 @@ exports.getPayslip = async (req, res) => {
         const attendanceRecords = await Attendance.find({
           employee: employeeId,
           date: {
-            $gte: startOfMonth.toISOString().split('T')[0],
-            $lte: endOfMonth.toISOString().split('T')[0]
+            $gte: startOfMonth,
+            $lte: endOfMonth
           }
         });
 
-        // Compute from records
+        // Compute from records case-insensitively
         attendanceRecords.forEach(record => {
-          if (record.status === 'present' || record.status === 'halfday') {
-            presentDays += (record.status === 'halfday' ? 0.5 : 1);
-          } else if (record.status === 'absent') {
+          const statusLower = record.status ? record.status.toLowerCase() : '';
+          if (statusLower === 'present' || statusLower === 'halfday') {
+            presentDays += (statusLower === 'halfday' ? 0.5 : 1);
+          } else if (statusLower === 'absent') {
             absentDays++;
           }
         });
