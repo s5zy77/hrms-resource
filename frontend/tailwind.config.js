@@ -7,14 +7,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        pastelBlue: '#8BA6B9',
-        pastelBlueLight: '#C3D6E3',
-        pastelBlueDark: '#5A7D92',
-        softYellow: '#FEF9C3', // Light yellow for notes
-        softYellowBorder: '#FDE047',
-        textMain: '#475569',
-        textMuted: '#94A3B8',
-        bgWhite: '#F8FAFC',
+        pastelBlue: '#38BDF8', // Vibrant Sky Blue
+        pastelBlueLight: '#BAE6FD', // Light sky glow
+        pastelBlueDark: '#0284C7', // Deep sky blue for text
+        softYellow: '#FEF08A', // Glowing yellow
+        softYellowBorder: '#FACC15',
+        textMain: '#0F172A',
+        textMuted: '#64748B',
+        bgWhite: '#F0F9FF', // Very light blue tint background
         cardWhite: '#FFFFFF',
       },
       fontFamily: {
