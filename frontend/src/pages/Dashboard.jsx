@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const mockEmployees = [
   { id: 1, name: 'Anushka Ghosh', department: 'Engineering', status: 'online', avatar: 'AG' },
@@ -11,6 +12,7 @@ const mockEmployees = [
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   const filteredEmployees = useMemo(() => {
     return mockEmployees.filter(emp => {
@@ -47,7 +49,11 @@ export default function Dashboard() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEmployees.map((emp) => (
-            <div key={emp.id} className="glass-card p-6 flex items-center gap-5 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer">
+            <div 
+              key={emp.id} 
+              onClick={() => navigate(`/employee/${emp.id}`)}
+              className="glass-card p-6 flex items-center gap-5 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer"
+            >
               {/* The Light Yellow Profile DP */}
               <div className="relative">
                 <div className="w-16 h-16 rounded-full bg-avatarBg text-avatarText flex items-center justify-center text-lg font-bold border border-avatarText/10 shadow-sm">
