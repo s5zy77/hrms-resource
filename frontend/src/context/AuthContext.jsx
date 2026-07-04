@@ -8,18 +8,28 @@ export function AuthProvider({ children }) {
     return localStorage.getItem('auth') === 'true';
   });
 
-  const login = () => {
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  const login = (userData = { role: 'employee', employeeId: 'mock-1' }) => {
     setIsAuthenticated(true);
+    setUser(userData);
     localStorage.setItem('auth', 'true');
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logout = () => {
     setIsAuthenticated(false);
+    setUser(null);
     localStorage.removeItem('auth');
+    localStorage.removeItem('user');
+    localStorage.removeItem('demoTour'); // Clear tour flag on logout
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

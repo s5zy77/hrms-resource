@@ -5,14 +5,38 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-primary: #7BC9F5;
+    --color-primaryHover: #5AB8ED;
+    --color-surface: #FFFFFF;
+    --color-background: #F0F9FF;
+    --color-textPrimary: #1E293B;
+    --color-textSecondary: #64748B;
+    --color-borderLight: #E0F2FE;
+    --color-avatarBg: #FFECA1;
+    --color-avatarText: #A17200;
+  }
+
+  .dark {
+    --color-primary: #5AB8ED;
+    --color-primaryHover: #7BC9F5;
+    --color-surface: #1E293B;
+    --color-background: #0F172A;
+    --color-textPrimary: #F8FAFC;
+    --color-textSecondary: #94A3B8;
+    --color-borderLight: #334155;
+    --color-avatarBg: #452B00;
+    --color-avatarText: #FFECA1;
+  }
+
   body {
-    @apply bg-background text-textPrimary font-sans antialiased;
+    @apply bg-background text-textPrimary font-sans antialiased transition-colors duration-300;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-surface rounded-xl shadow-soft border border-borderLight;
+    @apply bg-surface rounded-xl shadow-soft border border-borderLight transition-colors duration-300;
   }
   
   .btn-primary {
@@ -20,6 +44,6 @@
   }
 
   .input-field {
-    @apply w-full px-4 py-2.5 rounded-lg border border-borderLight bg-white focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-150 text-sm;
+    @apply w-full px-4 py-2.5 rounded-lg border border-borderLight bg-surface focus:outline-none focus:border-primary focus:ring-4 focus:ring-borderLight transition-all duration-150 text-sm;
   }
 }

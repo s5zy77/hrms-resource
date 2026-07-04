@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { ShieldCheck, UserCircle } from 'lucide-react';
+import usePageTitle from '../hooks/usePageTitle';
 
 export default function SignIn() {
+  usePageTitle('Sign In');
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loginId, setLoginId] = useState('');
@@ -23,9 +26,29 @@ export default function SignIn() {
       return;
     }
 
-    // Mock successful login
-    login();
+    // Default to employee if manual login used
+    login({ role: 'employee', employeeId: loginId, email: 'user@aeroleave.com' });
     navigate('/employees');
+  };
+
+  const handleAdminDemo = () => {
+    setLoginId('admin@aeroleave.com');
+    setPassword('demo123');
+    // Simulate typing/submitting visually for a split second
+    setTimeout(() => {
+      login({ role: 'admin', employeeId: 'admin-demo', email: 'admin@aeroleave.com', name: 'Admin Demo' });
+      localStorage.setItem('demoTour', 'true');
+      navigate('/employees');
+    }, 600);
+  };
+
+  const handleEmployeeDemo = () => {
+    setLoginId('employee@aeroleave.com');
+    setPassword('demo123');
+    setTimeout(() => {
+      login({ role: 'employee', employeeId: 'emp-demo', email: 'employee@aeroleave.com', name: 'Employee Demo' });
+      navigate('/employees');
+    }, 600);
   };
 
   return (
@@ -75,6 +98,26 @@ export default function SignIn() {
             Sign In
           </button>
         </form>
+
+        <div className="mt-6 border-t border-borderLight pt-6">
+          <p className="text-xs text-textSecondary text-center mb-4 uppercase tracking-wider font-semibold">Hackathon Demo Access</p>
+          <div className="grid grid-cols-2 gap-3">
+            <button 
+              onClick={handleAdminDemo}
+              className="flex items-center justify-center gap-2 px-3 py-2 bg-[#714B67]/10 hover:bg-[#714B67]/20 text-[#714B67] text-sm font-semibold rounded-lg transition-colors"
+            >
+              <ShieldCheck size={16} />
+              Admin Demo
+            </button>
+            <button 
+              onClick={handleEmployeeDemo}
+              className="flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-colors"
+            >
+              <UserCircle size={16} />
+              Employee Demo
+            </button>
+          </div>
+        </div>
 
         <div className="mt-6 text-center text-sm text-textSecondary">
           Don't have an account?{' '}

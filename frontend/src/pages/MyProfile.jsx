@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import usePageTitle from '../hooks/usePageTitle';
 import ResumeTab from '../components/ResumeTab';
 import PrivateInfoTab from '../components/PrivateInfoTab';
 
 export default function MyProfile() {
+  usePageTitle('My Profile');
   const [activeTab, setActiveTab] = useState('resume');
 
   const tabs = [

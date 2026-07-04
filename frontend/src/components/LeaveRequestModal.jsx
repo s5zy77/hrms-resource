@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 
 const LeaveRequestModal = ({ isOpen, onClose, onSubmit, employeeName, employeeId }) => {
   const [leaveType, setLeaveType] = useState('Paid');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const [allocationDays, setAllocationDays] = useState(0);
   const [attachment, setAttachment] = useState(null);
   const [attachmentName, setAttachmentName] = useState('');
   const [error, setError] = useState('');
+
+  const [calendarDate, setCalendarDate] = useState(new Date());
 
   // Helper to calculate working days (excluding weekends)
   const calculateWorkingDays = (start, end) => {
@@ -44,10 +46,10 @@ const LeaveRequestModal = ({ isOpen, onClose, onSubmit, employeeName, employeeId
   const handleFormSubmit = (e) => {
     e.preventDefault();
     if (!startDate || !endDate) {
-      setError('Please fill in all dates.');
+      setError('Please select a start and end date on the calendar.');
       return;
     }
-    if (new Date(startDate) > new Date(endDate)) {
+    if (startDate > endDate) {
       setError('Start date cannot be after end date.');
       return;
     }
@@ -60,16 +62,95 @@ const LeaveRequestModal = ({ isOpen, onClose, onSubmit, employeeName, employeeId
       return;
     }
 
+    // Format dates to YYYY-MM-DD
+    const formatDate = (date) => {
+      const d = new Date(date);
+      let month = '' + (d.getMonth() + 1);
+      let day = '' + d.getDate();
+      const year = d.getFullYear();
+      if (month.length < 2) month = '0' + month;
+      if (day.length < 2) day = '0' + day;
+      return [year, month, day].join('-');
+    };
+
     setError('');
     onSubmit({
       employeeId,
       type: leaveType,
-      startDate,
-      endDate,
+      startDate: formatDate(startDate),
+      endDate: formatDate(endDate),
       allocationDays,
       attachment: attachmentName || null
     });
   };
+
+  const handleDayClick = (day) => {
+    const clickedDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
+    
+    if (!startDate || (startDate && endDate)) {
+      setStartDate(clickedDate);
+      setEndDate(null);
+    } else if (startDate && !endDate) {
+      if (clickedDate < startDate) {
+        setStartDate(clickedDate);
+        setEndDate(null);
+      } else {
+        setEndDate(clickedDate);
+      }
+    }
+  };
+
+  // Calendar rendering
+  const renderCalendar = () => {
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDay = new Date(year, month, 1).getDay();
+    
+    const cells = [];
+    for (let i = 0; i < firstDay; i++) {
+      cells.push(<div key={`empty-${i}`} style={styles.calendarCellEmpty}></div>);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const currentDate = new Date(year, month, day);
+      
+      let isSelected = false;
+      let isInRange = false;
+      
+      if (startDate && currentDate.getTime() === startDate.getTime()) isSelected = true;
+      if (endDate && currentDate.getTime() === endDate.getTime()) isSelected = true;
+      if (startDate && endDate && currentDate > startDate && currentDate < endDate) isInRange = true;
+      
+      const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+
+      let cellStyle = { ...styles.calendarCell };
+      if (isSelected) {
+        cellStyle = { ...cellStyle, ...styles.calendarCellSelected };
+      } else if (isInRange) {
+        cellStyle = { ...cellStyle, ...styles.calendarCellRange };
+      }
+      if (isWeekend && !isSelected && !isInRange) {
+        cellStyle = { ...cellStyle, backgroundColor: '#f5f5f5', color: '#999' };
+      }
+
+      cells.push(
+        <div 
+          key={`day-${day}`} 
+          style={cellStyle}
+          onClick={() => handleDayClick(day)}
+        >
+          {day}
+        </div>
+      );
+    }
+    return cells;
+  };
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
 
   if (!isOpen) return null;
 
@@ -80,83 +161,88 @@ const LeaveRequestModal = ({ isOpen, onClose, onSubmit, employeeName, employeeId
           <h3 style={styles.title}>Apply for Time Off</h3>
           <button style={styles.closeBtn} onClick={onClose}>&times;</button>
         </div>
-        <form onSubmit={handleFormSubmit} style={styles.form}>
-          {error && <div style={styles.errorMessage}>{error}</div>}
+        
+        {error && <div style={styles.errorMessage}>{error}</div>}
 
-          <div style={styles.fieldGroup}>
-            <label style={styles.label}>Employee Name</label>
-            <input 
-              type="text" 
-              value={employeeName || 'Logged In Employee'} 
-              disabled 
-              style={styles.disabledInput} 
-            />
-          </div>
-
-          <div style={styles.fieldGroup}>
-            <label style={styles.label}>Time Off Type</label>
-            <select 
-              value={leaveType} 
-              onChange={(e) => setLeaveType(e.target.value)} 
-              style={styles.select}
-            >
-              <option value="Paid">Paid Time Off</option>
-              <option value="Sick">Sick Time Off</option>
-              <option value="Unpaid">Unpaid Time Off</option>
-            </select>
-          </div>
-
-          <div style={styles.row}>
-            <div style={{ ...styles.fieldGroup, flex: 1 }}>
-              <label style={styles.label}>From Date</label>
-              <input 
-                type="date" 
-                value={startDate} 
-                onChange={(e) => setStartDate(e.target.value)} 
-                required 
-                style={styles.input} 
-              />
-            </div>
-            <div style={{ ...styles.fieldGroup, flex: 1, marginLeft: '12px' }}>
-              <label style={styles.label}>To Date</label>
-              <input 
-                type="date" 
-                value={endDate} 
-                onChange={(e) => setEndDate(e.target.value)} 
-                required 
-                style={styles.input} 
-              />
-            </div>
-          </div>
-
-          <div style={styles.fieldGroup}>
-            <label style={styles.label}>Duration (Working Days)</label>
-            <div style={styles.daysDisplay}>{allocationDays} {allocationDays === 1 ? 'Day' : 'Days'}</div>
-          </div>
-
-          {leaveType === 'Sick' && (
+        <div style={styles.bodySplit}>
+          <div style={styles.leftCol}>
             <div style={styles.fieldGroup}>
-              <label style={styles.label}>Medical Certificate (Required for Sick Leave)</label>
-              <div style={styles.fileUploadContainer}>
-                <label style={styles.fileLabel}>
-                  Choose File
-                  <input 
-                    type="file" 
-                    onChange={handleFileChange} 
-                    accept=".pdf,.png,.jpg,.jpeg" 
-                    style={styles.fileInput} 
-                  />
-                </label>
-                <span style={styles.fileName}>{attachmentName || 'No file chosen'}</span>
+              <label style={styles.label}>Time Off Type</label>
+              <select 
+                value={leaveType} 
+                onChange={(e) => setLeaveType(e.target.value)} 
+                style={styles.select}
+              >
+                <option value="Paid">Paid Time Off</option>
+                <option value="Sick">Sick Time Off</option>
+                <option value="Unpaid">Unpaid Time Off</option>
+              </select>
+            </div>
+
+            <div style={styles.fieldGroup}>
+              <label style={styles.label}>Selected Period</label>
+              <div style={styles.selectedDatesBox}>
+                {startDate ? startDate.toLocaleDateString() : 'Start Date'} 
+                {' - '} 
+                {endDate ? endDate.toLocaleDateString() : 'End Date'}
               </div>
             </div>
-          )}
 
-          <div style={styles.actions}>
-            <button type="button" onClick={onClose} style={styles.cancelBtn}>Cancel</button>
-            <button type="submit" style={styles.submitBtn}>Apply</button>
+            <div style={styles.fieldGroup}>
+              <label style={styles.label}>Duration (Working Days)</label>
+              <div style={styles.daysDisplay}>{allocationDays} {allocationDays === 1 ? 'Day' : 'Days'}</div>
+            </div>
+
+            {leaveType === 'Sick' && (
+              <div style={styles.fieldGroup}>
+                <label style={styles.label}>Medical Certificate</label>
+                <div style={styles.fileUploadContainer}>
+                  <label style={styles.fileLabel}>
+                    Choose File
+                    <input 
+                      type="file" 
+                      onChange={handleFileChange} 
+                      accept=".pdf,.png,.jpg,.jpeg" 
+                      style={styles.fileInput} 
+                    />
+                  </label>
+                  <span style={styles.fileName}>{attachmentName || 'No file chosen'}</span>
+                </div>
+              </div>
+            )}
           </div>
-        </form>
+
+          <div style={styles.rightCol}>
+            <label style={styles.label}>Select Date Range</label>
+            <div style={styles.calendarContainer}>
+              <div style={styles.calendarHeader}>
+                <button 
+                  type="button"
+                  onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))}
+                  style={styles.navBtn}
+                >&lt;</button>
+                <span style={styles.monthLabel}>{monthNames[calendarDate.getMonth()]} {calendarDate.getFullYear()}</span>
+                <button 
+                  type="button"
+                  onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))}
+                  style={styles.navBtn}
+                >&gt;</button>
+              </div>
+              <div style={styles.calendarDaysHeader}>
+                <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+              </div>
+              <div style={styles.calendarGrid}>
+                {renderCalendar()}
+              </div>
+              <p style={{fontSize: '11px', color: '#888', marginTop: '10px', textAlign: 'center'}}>Click a start date, then click an end date.</p>
+            </div>
+          </div>
+        </div>
+
+        <div style={styles.actions}>
+          <button type="button" onClick={onClose} style={styles.cancelBtn}>Cancel</button>
+          <button type="button" onClick={handleFormSubmit} style={styles.submitBtn}>Apply</button>
+        </div>
       </div>
     </div>
   );
@@ -178,7 +264,7 @@ const styles = {
     fontFamily: "'Inter', sans-serif"
   },
   modal: {
-    width: '450px',
+    width: '750px',
     backgroundColor: '#ffffff',
     borderRadius: '12px',
     boxShadow: '0 8px 32px rgba(113, 75, 103, 0.15)',
@@ -196,7 +282,7 @@ const styles = {
   },
   title: {
     margin: 0,
-    color: '#714B67', // Purple accent
+    color: '#714B67', 
     fontSize: '20px',
     fontWeight: '600'
   },
@@ -208,7 +294,17 @@ const styles = {
     cursor: 'pointer',
     padding: '4px'
   },
-  form: {
+  bodySplit: {
+    display: 'flex',
+    gap: '24px'
+  },
+  leftCol: {
+    flex: '1',
+    display: 'flex',
+    flexDirection: 'column'
+  },
+  rightCol: {
+    flex: '1',
     display: 'flex',
     flexDirection: 'column'
   },
@@ -217,35 +313,11 @@ const styles = {
     display: 'flex',
     flexDirection: 'column'
   },
-  row: {
-    display: 'flex',
-    justifyContent: 'space-between'
-  },
   label: {
     fontSize: '13px',
     fontWeight: '500',
     color: '#666',
     marginBottom: '6px'
-  },
-  input: {
-    padding: '10px 12px',
-    borderRadius: '6px',
-    border: '1px solid #ccc',
-    fontSize: '14px',
-    color: '#333',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-    ':focus': {
-      borderColor: '#714B67'
-    }
-  },
-  disabledInput: {
-    padding: '10px 12px',
-    borderRadius: '6px',
-    border: '1px solid #eaeaea',
-    backgroundColor: '#f9f9f9',
-    color: '#888',
-    fontSize: '14px'
   },
   select: {
     padding: '10px 12px',
@@ -256,6 +328,16 @@ const styles = {
     outline: 'none',
     backgroundColor: '#fff'
   },
+  selectedDatesBox: {
+    padding: '10px 12px',
+    borderRadius: '6px',
+    border: '1px solid #eaeaea',
+    backgroundColor: '#f9f9f9',
+    fontSize: '14px',
+    color: '#333',
+    textAlign: 'center',
+    fontWeight: '500'
+  },
   daysDisplay: {
     fontSize: '16px',
     fontWeight: '600',
@@ -263,7 +345,68 @@ const styles = {
     backgroundColor: 'rgba(113, 75, 103, 0.08)',
     padding: '10px 12px',
     borderRadius: '6px',
-    display: 'inline-block'
+    display: 'inline-block',
+    textAlign: 'center'
+  },
+  calendarContainer: {
+    border: '1px solid #eaeaea',
+    borderRadius: '8px',
+    padding: '12px',
+    backgroundColor: '#fff'
+  },
+  calendarHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '12px'
+  },
+  navBtn: {
+    background: 'none',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    padding: '4px 8px',
+    cursor: 'pointer',
+    fontSize: '14px'
+  },
+  monthLabel: {
+    fontSize: '14px',
+    fontWeight: '600'
+  },
+  calendarDaysHeader: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(7, 1fr)',
+    textAlign: 'center',
+    fontSize: '12px',
+    fontWeight: '600',
+    color: '#888',
+    marginBottom: '8px'
+  },
+  calendarGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(7, 1fr)',
+    gap: '4px'
+  },
+  calendarCell: {
+    height: '32px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '13px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    transition: 'all 0.1s'
+  },
+  calendarCellEmpty: {
+    height: '32px'
+  },
+  calendarCellSelected: {
+    backgroundColor: '#714B67',
+    color: '#fff',
+    fontWeight: 'bold'
+  },
+  calendarCellRange: {
+    backgroundColor: 'rgba(113, 75, 103, 0.15)',
+    color: '#714B67'
   },
   fileUploadContainer: {
     display: 'flex',
@@ -286,7 +429,7 @@ const styles = {
   fileName: {
     fontSize: '13px',
     color: '#555',
-    maxWidth: '200px',
+    maxWidth: '150px',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap'
@@ -294,7 +437,7 @@ const styles = {
   actions: {
     display: 'flex',
     justifyContent: 'flex-end',
-    marginTop: '20px',
+    marginTop: '24px',
     borderTop: '1px solid #eaeaea',
     paddingTop: '16px'
   },
@@ -306,11 +449,7 @@ const styles = {
     cursor: 'pointer',
     marginRight: '12px',
     fontSize: '14px',
-    color: '#555',
-    transition: 'background 0.2s',
-    ':hover': {
-      backgroundColor: '#f5f5f5'
-    }
+    color: '#555'
   },
   submitBtn: {
     padding: '10px 20px',
@@ -320,11 +459,7 @@ const styles = {
     color: '#ffffff',
     cursor: 'pointer',
     fontSize: '14px',
-    fontWeight: '500',
-    transition: 'background 0.2s',
-    ':hover': {
-      backgroundColor: '#583a50'
-    }
+    fontWeight: '500'
   },
   errorMessage: {
     backgroundColor: '#FCE8E6',

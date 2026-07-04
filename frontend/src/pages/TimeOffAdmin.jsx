@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { Download } from 'lucide-react';
+import usePageTitle from '../hooks/usePageTitle';
 
 const TimeOffAdmin = () => {
+  usePageTitle('Time Off Administration');
   const [activeTab, setActiveTab] = useState('Time Off');
   const [requests, setRequests] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  
+  // Action Modal State
+  const [actionModal, setActionModal] = useState({
+    isOpen: false,
+    requestId: null,
+    actionType: null, // 'approve' | 'reject'
+    comment: ''
+  });
 
   // Allocation forms state
   const [allocEmployeeId, setAllocEmployeeId] = useState('');
@@ -64,11 +75,28 @@ const TimeOffAdmin = () => {
     }
   };
 
-  const handleAction = async (id, action) => {
+  const openActionModal = (id, action) => {
+    setActionModal({
+      isOpen: true,
+      requestId: id,
+      actionType: action,
+      comment: ''
+    });
+  };
+
+  const closeActionModal = () => {
+    setActionModal({ isOpen: false, requestId: null, actionType: null, comment: '' });
+  };
+
+  const confirmAction = async () => {
+    const { requestId: id, actionType: action, comment } = actionModal;
+    if (!id || !action) return;
+
     try {
       const response = await fetch(`/api/leave/${id}/${action}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminComment: comment })
       });
       const result = await response.json();
       if (result.success) {
@@ -81,9 +109,15 @@ const TimeOffAdmin = () => {
       console.error(`Error processing leave ${action}:`, error);
       // Mock action state local update
       setRequests(prev =>
-        prev.map(r => (r._id === id ? { ...r, status: action === 'approve' ? 'Approved' : 'Rejected' } : r))
+        prev.map(r => (r._id === id ? { 
+          ...r, 
+          status: action === 'approve' ? 'Approved' : 'Rejected',
+          adminComment: comment 
+        } : r))
       );
       setMessage(`Mock Request successfully ${action === 'approve' ? 'Approved' : 'Rejected'}.`);
+    } finally {
+      closeActionModal();
     }
   };
 
@@ -127,6 +161,38 @@ const TimeOffAdmin = () => {
     return name.toLowerCase().includes(query) || empId.toLowerCase().includes(query);
   });
 
+  const downloadCSV = () => {
+    if (filteredRequests.length === 0) {
+      alert("No data to export.");
+      return;
+    }
+    const headers = ['Employee Name', 'Employee ID', 'Leave Type', 'Start Date', 'End Date', 'Days', 'Status', 'Admin Comment'];
+    const rows = filteredRequests.map(r => [
+      r.employee?.name || 'N/A',
+      r.employee?.employeeId || 'N/A',
+      r.type || 'N/A',
+      new Date(r.startDate).toLocaleDateString(),
+      new Date(r.endDate).toLocaleDateString(),
+      r.allocationDays || 0,
+      r.status || 'Unknown',
+      r.adminComment || ''
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(e => e.map(field => `"${field}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "leave_requests_report.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.pageHeader}>
@@ -145,6 +211,10 @@ const TimeOffAdmin = () => {
             Leave Allocations
           </button>
         </div>
+        <button onClick={downloadCSV} className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primaryHover transition-colors">
+          <Download size={16} />
+          Download Report
+        </button>
       </div>
 
       {message && <div style={styles.notification}>{message}</div>}
@@ -214,14 +284,14 @@ const TimeOffAdmin = () => {
                         {r.status === 'Pending' ? (
                           <div style={styles.actionGroup}>
                             <button
-                              onClick={() => handleAction(r._id, 'approve')}
+                              onClick={() => openActionModal(r._id, 'approve')}
                               style={styles.approveBtn}
                               title="Approve Leave"
                             >
                               🟢 Approve
                             </button>
                             <button
-                              onClick={() => handleAction(r._id, 'reject')}
+                              onClick={() => openActionModal(r._id, 'reject')}
                               style={styles.rejectBtn}
                               title="Reject Leave"
                             >
@@ -281,6 +351,35 @@ const TimeOffAdmin = () => {
               Allocate Days
             </button>
           </form>
+        </div>
+      )}
+
+      {/* Action Modal with Comment Field */}
+      {actionModal.isOpen && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <h3 style={styles.sectionTitle}>
+              {actionModal.actionType === 'approve' ? 'Approve Leave Request' : 'Reject Leave Request'}
+            </h3>
+            <div style={styles.fieldGroup}>
+              <label style={styles.label}>Admin Comment (Optional)</label>
+              <textarea
+                placeholder="Enter a reason or comment..."
+                value={actionModal.comment}
+                onChange={(e) => setActionModal({ ...actionModal, comment: e.target.value })}
+                style={{ ...styles.input, minHeight: '80px', resize: 'vertical' }}
+              />
+            </div>
+            <div style={styles.modalActions}>
+              <button onClick={closeActionModal} style={styles.cancelBtn}>Cancel</button>
+              <button 
+                onClick={confirmAction} 
+                style={actionModal.actionType === 'approve' ? styles.approveBtnModal : styles.rejectBtnModal}
+              >
+                Confirm {actionModal.actionType === 'approve' ? 'Approval' : 'Rejection'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -478,7 +577,8 @@ const styles = {
     borderRadius: '6px',
     border: '1px solid #ccc',
     fontSize: '14px',
-    outline: 'none'
+    outline: 'none',
+    fontFamily: 'inherit'
   },
   select: {
     padding: '10px 12px',
@@ -503,6 +603,57 @@ const styles = {
     ':hover': {
       backgroundColor: '#583a50'
     }
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: '24px',
+    borderRadius: '12px',
+    width: '400px',
+    maxWidth: '90%',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+  },
+  modalActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '12px',
+    marginTop: '20px'
+  },
+  cancelBtn: {
+    padding: '8px 16px',
+    border: '1px solid #ccc',
+    backgroundColor: '#fff',
+    borderRadius: '6px',
+    cursor: 'pointer'
+  },
+  approveBtnModal: {
+    padding: '8px 16px',
+    backgroundColor: '#28A745',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '600'
+  },
+  rejectBtnModal: {
+    padding: '8px 16px',
+    backgroundColor: '#DC3545',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '600'
   }
 };
 

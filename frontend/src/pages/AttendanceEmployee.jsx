@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import usePageTitle from '../hooks/usePageTitle';
 import { useAuth } from '../context/AuthContext';
 
 export default function AttendanceEmployee() {
+  usePageTitle('My Attendance');
   const { user } = useAuth();
   const employeeId = user?.employeeId || localStorage.getItem('employeeId') || 'mock-employee-id';
   
@@ -9,6 +11,7 @@ export default function AttendanceEmployee() {
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [viewMode, setViewMode] = useState('Monthly'); // 'Monthly' | 'Weekly'
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -90,13 +93,43 @@ export default function AttendanceEmployee() {
     }
   };
 
+  // Filter records based on viewMode
+  const filteredRecords = useMemo(() => {
+    if (viewMode === 'Monthly') return records;
+
+    // Weekly Mode: filter for the active week
+    const today = new Date();
+    let referenceDate = new Date();
+    
+    // If we are looking at a different month/year, use the 1st of that month as the reference week
+    if (today.getMonth() !== currentMonth || today.getFullYear() !== currentYear) {
+      referenceDate = new Date(currentYear, currentMonth, 1);
+    }
+
+    const day = referenceDate.getDay();
+    // Get Monday of the reference date's week
+    const diff = referenceDate.getDate() - day + (day === 0 ? -6 : 1);
+    const weekStart = new Date(referenceDate);
+    weekStart.setDate(diff);
+    weekStart.setHours(0, 0, 0, 0);
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    return records.filter(r => {
+      const rd = new Date(r.date);
+      return rd >= weekStart && rd <= weekEnd;
+    });
+  }, [records, viewMode, currentMonth, currentYear]);
+
   // Calculations for summary stats
-  const presentDays = records.filter(r => r.status === 'Present').length;
-  const halfDays = records.filter(r => r.status === 'Halfday').length;
-  const totalDays = records.length;
+  const presentDays = filteredRecords.filter(r => r.status === 'Present').length;
+  const halfDays = filteredRecords.filter(r => r.status === 'Halfday').length;
+  const totalDays = filteredRecords.length;
   
-  const totalHoursWorked = records.reduce((acc, r) => acc + (r.workHours || 0), 0);
-  const totalOvertime = records.reduce((acc, r) => acc + (r.extraHours || 0), 0);
+  const totalHoursWorked = filteredRecords.reduce((acc, r) => acc + (r.workHours || 0), 0);
+  const totalOvertime = filteredRecords.reduce((acc, r) => acc + (r.extraHours || 0), 0);
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
@@ -107,23 +140,45 @@ export default function AttendanceEmployee() {
           <p className="text-textSecondary mt-1 text-sm">Track your daily working hours, logs, and status history.</p>
         </div>
 
-        {/* Month Navigator */}
-        <div className="flex items-center space-x-3 bg-surface px-4 py-2 border border-borderLight rounded-xl shadow-sm">
-          <button 
-            onClick={handlePrevMonth}
-            className="p-1 rounded-lg hover:bg-background text-textSecondary hover:text-textPrimary transition-all"
-          >
-            &larr;
-          </button>
-          <span className="text-sm font-semibold text-textPrimary min-w-[120px] text-center select-none">
-            {months[currentMonth]} {currentYear}
-          </span>
-          <button 
-            onClick={handleNextMonth}
-            className="p-1 rounded-lg hover:bg-background text-textSecondary hover:text-textPrimary transition-all"
-          >
-            &rarr;
-          </button>
+        <div className="flex items-center gap-4">
+          {/* View Toggle */}
+          <div className="flex bg-surface border border-borderLight rounded-lg p-1 shadow-sm">
+            <button 
+              onClick={() => setViewMode('Monthly')}
+              className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${
+                viewMode === 'Monthly' ? 'bg-[#714B67] text-white' : 'text-textSecondary hover:text-textPrimary'
+              }`}
+            >
+              Monthly
+            </button>
+            <button 
+              onClick={() => setViewMode('Weekly')}
+              className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${
+                viewMode === 'Weekly' ? 'bg-[#714B67] text-white' : 'text-textSecondary hover:text-textPrimary'
+              }`}
+            >
+              Weekly
+            </button>
+          </div>
+
+          {/* Month Navigator */}
+          <div className="flex items-center space-x-3 bg-surface px-4 py-2 border border-borderLight rounded-lg shadow-sm">
+            <button 
+              onClick={handlePrevMonth}
+              className="p-1 rounded-lg hover:bg-background text-textSecondary hover:text-textPrimary transition-all"
+            >
+              &larr;
+            </button>
+            <span className="text-sm font-semibold text-textPrimary min-w-[120px] text-center select-none">
+              {months[currentMonth]} {currentYear}
+            </span>
+            <button 
+              onClick={handleNextMonth}
+              className="p-1 rounded-lg hover:bg-background text-textSecondary hover:text-textPrimary transition-all"
+            >
+              &rarr;
+            </button>
+          </div>
         </div>
       </div>
 
@@ -157,7 +212,7 @@ export default function AttendanceEmployee() {
       {/* Logs Table */}
       <div className="card overflow-hidden">
         <div className="px-6 py-5 border-b border-borderLight flex justify-between items-center">
-          <h2 className="text-lg font-bold text-textPrimary">Daily Shifts</h2>
+          <h2 className="text-lg font-bold text-textPrimary">{viewMode === 'Weekly' ? 'Weekly Shifts' : 'Daily Shifts'}</h2>
           <span className="text-xs font-semibold text-textSecondary uppercase">{totalDays} Logs Found</span>
         </div>
         
@@ -180,14 +235,14 @@ export default function AttendanceEmployee() {
                     Loading attendance entries...
                   </td>
                 </tr>
-              ) : records.length === 0 ? (
+              ) : filteredRecords.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="text-center py-8 text-textSecondary font-medium">
-                    No logs recorded for this month.
+                    No logs recorded for this {viewMode === 'Weekly' ? 'week' : 'month'}.
                   </td>
                 </tr>
               ) : (
-                records.map((record) => (
+                filteredRecords.map((record) => (
                   <tr key={record._id} className="hover:bg-background transition-colors">
                     <td className="px-6 py-4 font-semibold text-textPrimary">
                       {new Date(record.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}

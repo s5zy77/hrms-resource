@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Sun, Moon, Menu } from 'lucide-react';
 
 export default function Navbar() {
   const location = useLocation();
@@ -11,8 +12,22 @@ export default function Navbar() {
   const [loading, setLoading] = useState(false);
   const [hasCheckedOutToday, setHasCheckedOutToday] = useState(false);
 
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('theme') === 'dark';
+  });
+
   const { isAuthenticated, logout, user } = useAuth();
   const employeeId = user?.employeeId || localStorage.getItem('employeeId') || 'mock-employee-id';
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -156,72 +171,79 @@ export default function Navbar() {
           )}
         </div>
 
-        {isAuthenticated ? (
-          <>
-            {/* Desktop Controls */}
-            <div className="hidden md:flex items-center space-x-6 relative">
-              <button 
-                onClick={handleCheckInOut}
-                disabled={loading}
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                  hasCheckedOutToday
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : isCheckedIn 
-                      ? 'bg-red-50 text-red-600 hover:bg-red-100' 
-                      : 'bg-green-50 text-green-700 hover:bg-green-100'
-                }`}
-              >
-                {loading ? 'Processing...' : hasCheckedOutToday ? 'Checked Out' : isCheckedIn ? 'Check Out' : 'Check In →'}
-              </button>
+        <div className="flex items-center space-x-4 md:space-x-6">
+          {/* Theme Toggle (Always visible) */}
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="p-2 text-textSecondary hover:bg-background rounded-lg transition-colors"
+            aria-label="Toggle Dark Mode"
+          >
+            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
 
-              <div className="relative">
+          {isAuthenticated ? (
+            <>
+              {/* Desktop Controls */}
+              <div className="hidden md:flex items-center space-x-6 relative">
                 <button 
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-2 focus:outline-none"
+                  onClick={handleCheckInOut}
+                  disabled={loading}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                    hasCheckedOutToday
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800'
+                      : isCheckedIn 
+                        ? 'bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30' 
+                        : 'bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/30'
+                  }`}
                 >
-                  <div className="w-10 h-10 rounded-full bg-avatarBg text-avatarText flex items-center justify-center text-sm font-semibold shadow-sm border border-borderLight hover:border-gray-300 transition-all">
-                    {user?.name ? user.name.split(' ').map(n => n[0]).join('') : 'AG'}
-                  </div>
-                  <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${isCheckedIn ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  {loading ? 'Processing...' : hasCheckedOutToday ? 'Checked Out' : isCheckedIn ? 'Check Out' : 'Check In →'}
                 </button>
 
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-surface rounded-xl shadow-soft border border-borderLight overflow-hidden z-50 py-1">
-                    <Link to="/profile" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-textPrimary hover:bg-background transition-colors">
-                      My Profile
-                    </Link>
-                    <div className="h-px bg-borderLight w-full my-1"></div>
-                    <button 
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      Log Out
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+                <div className="relative">
+                  <button 
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-2 focus:outline-none"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-avatarBg text-avatarText flex items-center justify-center text-sm font-semibold shadow-sm border border-borderLight hover:border-gray-300 transition-all">
+                      {user?.name ? user.name.split(' ').map(n => n[0]).join('') : 'AG'}
+                    </div>
+                    <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-surface ${isCheckedIn ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  </button>
 
-            {/* Mobile Menu Toggle */}
-            <button 
-              className="md:hidden flex items-center p-2 text-textSecondary hover:bg-background rounded-lg"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <div className="space-y-1.5">
-                <span className="block w-6 h-0.5 bg-current"></span>
-                <span className="block w-6 h-0.5 bg-current"></span>
-                <span className="block w-6 h-0.5 bg-current"></span>
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-surface rounded-xl shadow-soft border border-borderLight overflow-hidden z-50 py-1">
+                      <Link to="/profile" onClick={() => setIsDropdownOpen(false)} className="block px-4 py-2 text-sm text-textPrimary hover:bg-background transition-colors">
+                        My Profile
+                      </Link>
+                      <div className="h-px bg-borderLight w-full my-1"></div>
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        Log Out
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </button>
-          </>
-        ) : (
-          <div className="flex items-center space-x-4">
-            <Link to="/signin" className="hidden sm:block text-sm font-medium text-textSecondary hover:text-textPrimary">Sign In</Link>
-            <Link to="/signup" className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold shadow-sm hover:bg-primaryHover transition-all">
-              Sign Up
-            </Link>
-          </div>
-        )}
+
+              {/* Mobile Menu Toggle */}
+              <button 
+                className="md:hidden flex items-center p-2 text-textSecondary hover:bg-background rounded-lg"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                <Menu size={24} />
+              </button>
+            </>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <Link to="/signin" className="hidden sm:block text-sm font-medium text-textSecondary hover:text-textPrimary">Sign In</Link>
+              <Link to="/signup" className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold shadow-sm hover:bg-primaryHover transition-all">
+                Sign Up
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Mobile Menu Dropdown */}
@@ -233,10 +255,10 @@ export default function Navbar() {
               disabled={loading}
               className={`px-4 py-3 rounded-lg text-sm font-bold text-center transition-all ${
                 hasCheckedOutToday
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800'
                   : isCheckedIn 
-                    ? 'bg-red-50 text-red-600' 
-                    : 'bg-green-50 text-green-700'
+                    ? 'bg-red-50 text-red-600 dark:bg-red-900/30' 
+                    : 'bg-green-50 text-green-700 dark:bg-green-900/30'
               }`}
             >
               {loading ? 'Processing...' : hasCheckedOutToday ? 'Checked Out' : isCheckedIn ? 'Check Out' : 'Check In →'}

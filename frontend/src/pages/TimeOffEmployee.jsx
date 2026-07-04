@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import LeaveRequestModal from '../components/LeaveRequestModal';
+import { useAuth } from '../context/AuthContext';
+import usePageTitle from '../hooks/usePageTitle';
 
 const TimeOffEmployee = ({ employeeId = 'mock-employee-id', employeeName = 'Alex Mercer' }) => {
+  usePageTitle('Time Off');
   const [leaves, setLeaves] = useState([]);
   const [balances, setBalances] = useState({ paid: 24, sick: 7 });
   const [isModalOpen, setIsModalOpen] = useState(false);

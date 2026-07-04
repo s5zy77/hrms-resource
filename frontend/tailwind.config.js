@@ -4,18 +4,19 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        primary: '#7BC9F5',       // Soft dreamy sky blue
-        primaryHover: '#5AB8ED',
-        surface: '#FFFFFF',       // Solid surface
-        background: '#F0F9FF',    // Soft dreamy blueish-white background
-        textPrimary: '#1E293B',
-        textSecondary: '#64748B',
-        borderLight: '#E0F2FE',
-        avatarBg: '#FFECA1',      // Dreamy soft golden glow
-        avatarText: '#A17200',    // Soft warm amber text
+        primary: 'var(--color-primary)',
+        primaryHover: 'var(--color-primaryHover)',
+        surface: 'var(--color-surface)',
+        background: 'var(--color-background)',
+        textPrimary: 'var(--color-textPrimary)',
+        textSecondary: 'var(--color-textSecondary)',
+        borderLight: 'var(--color-borderLight)',
+        avatarBg: 'var(--color-avatarBg)',
+        avatarText: 'var(--color-avatarText)',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
