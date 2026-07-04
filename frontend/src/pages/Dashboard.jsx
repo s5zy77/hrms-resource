@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import usePageTitle from '../hooks/usePageTitle';
@@ -6,12 +6,12 @@ import { Calendar, User, Clock, LogOut, Users, UserCheck, UserMinus } from 'luci
 import { Joyride, STATUS } from 'react-joyride';
 
 const mockEmployees = [
-  { id: 1, name: 'Anushka Ghosh', department: 'Engineering', status: 'online', avatar: 'AG', email: 'anushka@aeroleave.com' },
-  { id: 2, name: 'Ranish D', department: 'Design', status: 'online', avatar: 'RD', email: 'ranish@aeroleave.com' },
-  { id: 3, name: 'John Doe', department: 'HR', status: 'offline', avatar: 'JD', email: 'john.doe@aeroleave.com' },
-  { id: 4, name: 'Jane Smith', department: 'Marketing', status: 'busy', avatar: 'JS', email: 'jane.smith@aeroleave.com' },
-  { id: 5, name: 'Alice Johnson', department: 'Sales', status: 'online', avatar: 'AJ', email: 'alice.j@aeroleave.com' },
-  { id: 6, name: 'Bob Brown', department: 'Engineering', status: 'offline', avatar: 'BB', email: 'bob.brown@aeroleave.com' },
+  { id: 1, name: 'Anushka Ghosh', department: 'Engineering', status: 'online', avatar: 'AG', email: 'anushka@aeroleave.com', employeeId: 'EMP-2026-0001', phone: '+91 98765 43210', joiningDate: '2024-03-15', timezone: 'Asia/Kolkata', location: 'Kolkata, India' },
+  { id: 2, name: 'Ranish D', department: 'Design', status: 'online', avatar: 'RD', email: 'ranish@aeroleave.com', employeeId: 'EMP-2026-0002', phone: '+91 91234 56789', joiningDate: '2024-04-10', timezone: 'Asia/Kolkata', location: 'Kolkata, India' },
+  { id: 3, name: 'John Doe', department: 'HR', status: 'offline', avatar: 'JD', email: 'john.doe@aeroleave.com', employeeId: 'EMP-2026-0003', phone: '+1 (555) 019-2834', joiningDate: '2023-01-15', timezone: 'America/New_York', location: 'New York, USA' },
+  { id: 4, name: 'Jane Smith', department: 'Marketing', status: 'busy', avatar: 'JS', email: 'jane.smith@aeroleave.com', employeeId: 'EMP-2026-0004', phone: '+1 (555) 765-4321', joiningDate: '2025-06-01', timezone: 'America/Los_Angeles', location: 'Los Angeles, USA' },
+  { id: 5, name: 'Alice Johnson', department: 'Sales', status: 'online', avatar: 'AJ', email: 'alice.j@aeroleave.com', employeeId: 'EMP-2026-0005', phone: '+44 20 7946 0958', joiningDate: '2025-09-12', timezone: 'Europe/London', location: 'London, UK' },
+  { id: 6, name: 'Bob Brown', department: 'Engineering', status: 'offline', avatar: 'BB', email: 'bob.brown@aeroleave.com', employeeId: 'EMP-2026-0006', phone: '+49 30 901820', joiningDate: '2024-11-20', timezone: 'Europe/Berlin', location: 'Berlin, Germany' },
 ];
 
 export default function Dashboard() {
@@ -23,6 +23,27 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [runTour, setRunTour] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
+  const [timeTick, setTimeTick] = useState(0);
+  const searchInputRef = useRef(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const clockTimer = setInterval(() => {
+      setTimeTick(t => t + 1);
+    }, 5000);
+    return () => clearInterval(clockTimer);
+  }, []);
 
   useEffect(() => {
     if (role === 'admin' && localStorage.getItem('demoTour') === 'true') {
@@ -67,13 +88,17 @@ export default function Dashboard() {
 
   const filteredEmployees = useMemo(() => {
     return mockEmployees.filter(emp => {
+      // Exclude currently logged-in user (John Doe) from the employee directory
+      if (user?.email && emp.email.toLowerCase() === user.email.toLowerCase()) {
+        return false;
+      }
       const query = searchQuery.toLowerCase();
       return (
         emp.name.toLowerCase().includes(query) || 
         emp.department.toLowerCase().includes(query)
       );
     });
-  }, [searchQuery]);
+  }, [searchQuery, user]);
 
   const handleLogout = () => {
     logout();
@@ -103,13 +128,14 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-textPrimary tracking-tight admin-directory-header">Admin Directory</h1>
           <div className="flex gap-3 w-full md:w-auto admin-search-bar">
             <input 
+              ref={searchInputRef}
               type="text" 
-              placeholder="Search by name or dept..." 
+              placeholder="Search by name or dept... (Ctrl+K)" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-field w-full md:w-72"
             />
-            <button className="btn-primary flex items-center justify-center gap-2 whitespace-nowrap">
+            <button onClick={() => navigate('/signup')} className="btn-primary flex items-center justify-center gap-2 whitespace-nowrap">
               <span>+</span> New Employee
             </button>
           </div>
@@ -164,37 +190,77 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
-            {filteredEmployees.map((emp, index) => (
-              <div 
-                key={emp.id} 
-                onClick={() => navigate(`/employee/${emp.id}`)}
-                className={`glass-card overflow-hidden hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer employee-card-${index}`}
-              >
-                <div className="h-16 bg-gradient-to-r from-primary/20 to-transparent"></div>
-                <div className="p-6 pt-0">
-                  <div className="-mt-10 mb-3">
-                    <div className="w-20 h-20 rounded-full bg-surface p-1 shadow-sm relative inline-block">
-                      <div className="w-full h-full rounded-full bg-avatarBg text-avatarText flex items-center justify-center text-xl font-bold border border-avatarText/10">
-                        {emp.avatar}
+            {filteredEmployees.map((emp, index) => {
+              const getLocalTime = (tz) => {
+                try {
+                  return new Date().toLocaleTimeString('en-US', {
+                    timeZone: tz,
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                  }) + ' (' + tz.split('/')[1]?.replace('_', ' ') + ')';
+                } catch (e) {
+                  return '';
+                }
+              };
+
+              const handleCopyEmail = (e, email, id) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(email);
+                setCopiedId(id);
+                setTimeout(() => setCopiedId(null), 2000);
+              };
+
+              return (
+                <div 
+                  key={emp.id} 
+                  onClick={() => navigate(`/employee/${emp.id}`)}
+                  className={`glass-card overflow-hidden hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer employee-card-${index}`}
+                >
+                  <div className="h-16 bg-gradient-to-r from-primary/20 to-transparent"></div>
+                  <div className="p-6 pt-0">
+                    <div className="-mt-10 mb-3">
+                      <div className="w-20 h-20 rounded-full bg-surface p-1 shadow-sm relative inline-block">
+                        <div className="w-full h-full rounded-full bg-avatarBg text-avatarText flex items-center justify-center text-xl font-bold border border-avatarText/10">
+                          {emp.avatar}
+                        </div>
+                        <div className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-surface shadow-sm ${
+                          emp.status === 'online' ? 'bg-green-500' : 
+                          emp.status === 'busy' ? 'bg-red-500' : 'bg-gray-400'
+                        }`}></div>
                       </div>
-                      <div className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-surface shadow-sm ${
-                        emp.status === 'online' ? 'bg-green-500' : 
-                        emp.status === 'busy' ? 'bg-red-500' : 'bg-gray-400'
-                      }`}></div>
                     </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-bold text-textPrimary">{emp.name}</h3>
-                    <p className="text-sm text-textSecondary font-medium mt-0.5">{emp.department}</p>
-                    <div className="mt-4 pt-4 border-t border-borderLight flex items-center justify-between text-xs text-textSecondary">
-                      <span>{emp.email}</span>
-                      <span className="font-semibold text-primary">View Profile &rarr;</span>
+                    
+                    <div>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-bold text-textPrimary">{emp.name}</h3>
+                          <p className="text-sm text-textSecondary font-medium mt-0.5">{emp.department}</p>
+                        </div>
+                        <span className="text-[10px] px-2 py-0.5 bg-gray-100 text-textSecondary rounded font-mono">
+                          {emp.employeeId}
+                        </span>
+                      </div>
+                      
+                      <div className="mt-3 text-xs text-textSecondary font-medium flex items-center gap-1">
+                        <span>🕒 Local:</span>
+                        <span className="text-textPrimary font-semibold">{getLocalTime(emp.timezone)}</span>
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-borderLight flex items-center justify-between text-xs text-textSecondary">
+                        <div className="flex items-center gap-1.5" onClick={(e) => handleCopyEmail(e, emp.email, emp.id)}>
+                          <span className="truncate max-w-[150px]">{emp.email}</span>
+                          <span className="cursor-pointer text-primary opacity-60 hover:opacity-100 text-[10px]" title="Copy Email">
+                            {copiedId === emp.id ? '✓ Copied' : '📋'}
+                          </span>
+                        </div>
+                        <span className="font-semibold text-primary">View Profile &rarr;</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

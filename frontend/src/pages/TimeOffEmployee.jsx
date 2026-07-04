@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import LeaveRequestModal from '../components/LeaveRequestModal';
+import EmptyState from '../components/EmptyState';
+import SkeletonLoader from '../components/SkeletonLoader';
 import { useAuth } from '../context/AuthContext';
 import usePageTitle from '../hooks/usePageTitle';
 
@@ -209,9 +211,9 @@ const TimeOffEmployee = ({ employeeId = 'mock-employee-id', employeeName = 'Alex
         <div style={styles.tableSection}>
           <h3 style={styles.sectionTitle}>Request History</h3>
           {loading ? (
-            <p>Loading records...</p>
+            <SkeletonLoader type="table" rows={4} />
           ) : leaves.length === 0 ? (
-            <p style={{ color: '#888' }}>No requests submitted yet.</p>
+            <EmptyState title="No requests yet" message="Looks like you haven't taken any time off yet! Click NEW REQUEST to get started." />
           ) : (
             <div style={styles.tableWrapper}>
               <table style={styles.table}>

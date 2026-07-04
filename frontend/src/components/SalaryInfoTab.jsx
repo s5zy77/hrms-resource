@@ -201,27 +201,27 @@ const SalaryInfoTab = ({ employeeId = 'mock-employee-id', isAdmin = true }) => {
               <h4 style={styles.columnHeader}>Salary Components</h4>
               <div style={styles.componentList}>
                 <div style={styles.componentItem}>
-                  <span>Basic Salary (50% of Wage)</span>
+                  <span>Basic Salary (50% of Wage) <span title="Core component of the pay, calculated as 50% of monthly base wage." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px', marginLeft: '4px' }}>ⓘ</span></span>
                   <strong>₹{components.basic.toLocaleString()}</strong>
                 </div>
                 <div style={styles.componentItem}>
-                  <span>House Rent Allowance (50% of Basic)</span>
+                  <span>House Rent Allowance (50% of Basic) <span title="House Rent Allowance provided to cover accommodation, equal to 50% of Basic." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px', marginLeft: '4px' }}>ⓘ</span></span>
                   <strong>₹{components.hra.toLocaleString()}</strong>
                 </div>
                 <div style={styles.componentItem}>
-                  <span>Standard Allowance (Fixed)</span>
+                  <span>Standard Allowance (Fixed) <span title="Standard tax-free allowance set at a fixed value of ₹4,167." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px', marginLeft: '4px' }}>ⓘ</span></span>
                   <strong>₹{components.standardAllowance.toLocaleString()}</strong>
                 </div>
                 <div style={styles.componentItem}>
-                  <span>Performance Bonus (8.33% of Basic)</span>
+                  <span>Performance Bonus (8.33% of Basic) <span title="Variable component computed as 8.33% of Basic, paid out based on performance." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px', marginLeft: '4px' }}>ⓘ</span></span>
                   <strong>₹{components.performanceBonus.toLocaleString()}</strong>
                 </div>
                 <div style={styles.componentItem}>
-                  <span>Leave Travel Allowance (8.33% of Basic)</span>
+                  <span>Leave Travel Allowance (8.33% of Basic) <span title="LTA allowance provided for domestic travel, equal to 8.33% of Basic." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px', marginLeft: '4px' }}>ⓘ</span></span>
                   <strong>₹{components.lta.toLocaleString()}</strong>
                 </div>
                 <div style={{ ...styles.componentItem, borderTop: '2px dashed #eee', marginTop: '8px' }}>
-                  <span>Fixed Allowance (Remainder)</span>
+                  <span>Fixed Allowance (Remainder) <span title="The remaining balance of base wage after subtracting other defined components." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px', marginLeft: '4px' }}>ⓘ</span></span>
                   <strong>₹{components.fixedAllowance.toLocaleString()}</strong>
                 </div>
               </div>
@@ -244,7 +244,7 @@ const SalaryInfoTab = ({ employeeId = 'mock-employee-id', isAdmin = true }) => {
 
               <div style={styles.componentList}>
                 <div style={styles.componentItem}>
-                  <span>Employee PF Contribution ({pfRate}%)</span>
+                  <span>Employee PF Contribution ({pfRate}%) <span title="Employee provident fund deduction, calculated as a percentage of Basic Salary." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px', marginLeft: '4px' }}>ⓘ</span></span>
                   <strong style={{ color: '#DC3545' }}>- ₹{deductions.employeePf.toLocaleString()}</strong>
                 </div>
                 <div style={styles.componentItem}>

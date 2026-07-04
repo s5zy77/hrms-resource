@@ -146,27 +146,27 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName = 'Alex Mercer
                 <div style={styles.breakdownCol}>
                   <div style={styles.tableHeader}>Earnings</div>
                   <div style={styles.componentRow}>
-                    <span>Basic Salary</span>
+                    <span>Basic Salary <span title="Core component of the pay, calculated as 50% of monthly base wage." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px' }}>ⓘ</span></span>
                     <span>₹{payslipData.components.basic.toLocaleString()}</span>
                   </div>
                   <div style={styles.componentRow}>
-                    <span>House Rent Allowance (HRA)</span>
+                    <span>House Rent Allowance (HRA) <span title="House Rent Allowance provided to cover accommodation, equal to 50% of Basic." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px' }}>ⓘ</span></span>
                     <span>₹{payslipData.components.hra.toLocaleString()}</span>
                   </div>
                   <div style={styles.componentRow}>
-                    <span>Standard Allowance</span>
+                    <span>Standard Allowance <span title="Standard tax-free allowance set at a fixed value of ₹4,167." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px' }}>ⓘ</span></span>
                     <span>₹{payslipData.components.standardAllowance.toLocaleString()}</span>
                   </div>
                   <div style={styles.componentRow}>
-                    <span>Performance Bonus</span>
+                    <span>Performance Bonus <span title="Variable component computed as 8.33% of Basic, paid out based on performance." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px' }}>ⓘ</span></span>
                     <span>₹{payslipData.components.performanceBonus.toLocaleString()}</span>
                   </div>
                   <div style={styles.componentRow}>
-                    <span>Leave Travel Allowance (LTA)</span>
+                    <span>Leave Travel Allowance (LTA) <span title="LTA allowance provided for domestic travel, equal to 8.33% of Basic." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px' }}>ⓘ</span></span>
                     <span>₹{payslipData.components.lta.toLocaleString()}</span>
                   </div>
                   <div style={styles.componentRow}>
-                    <span>Fixed Allowance</span>
+                    <span>Fixed Allowance <span title="The remaining balance of base wage after subtracting other defined components." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px' }}>ⓘ</span></span>
                     <span>₹{payslipData.components.fixedAllowance.toLocaleString()}</span>
                   </div>
                   <div style={styles.totalRow}>
@@ -179,19 +179,19 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName = 'Alex Mercer
                 <div style={styles.breakdownCol}>
                   <div style={styles.tableHeader}>Deductions</div>
                   <div style={styles.componentRow}>
-                    <span>Provident Fund (Employee)</span>
+                    <span>Provident Fund (Employee) <span title="Employee provident fund deduction, calculated as 12% of Basic Salary." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px' }}>ⓘ</span></span>
                     <span style={{ color: '#DC3545' }}>- ₹{payslipData.deductions.employeePf.toLocaleString()}</span>
                   </div>
                   <div style={styles.componentRow}>
-                    <span>Professional Tax</span>
+                    <span>Professional Tax <span title="State-specific profession tax, typically fixed at ₹200/month." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px' }}>ⓘ</span></span>
                     <span style={{ color: '#DC3545' }}>- ₹{payslipData.deductions.professionalTax.toLocaleString()}</span>
                   </div>
                   <div style={styles.componentRow}>
-                    <span>Unpaid Leave Deductions</span>
+                    <span>Unpaid Leave Deductions <span title="Salary deduction calculated for unpaid leaves taken during the month." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px' }}>ⓘ</span></span>
                     <span style={{ color: '#DC3545' }}>- ₹{payslipData.deductions.unpaidLeaveDeduction.toLocaleString()}</span>
                   </div>
                   <div style={styles.componentRow}>
-                    <span>Absence Deductions</span>
+                    <span>Absence Deductions <span title="Salary deduction calculated for unauthorized absences during the month." style={{ cursor: 'help', opacity: 0.6, fontSize: '11px' }}>ⓘ</span></span>
                     <span style={{ color: '#DC3545' }}>- ₹{payslipData.deductions.absenceDeduction.toLocaleString()}</span>
                   </div>
                   <div style={styles.totalRow}>

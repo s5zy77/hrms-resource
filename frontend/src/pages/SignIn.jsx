@@ -32,28 +32,28 @@ export default function SignIn() {
   };
 
   const handleAdminDemo = () => {
-    setLoginId('admin@aeroleave.com');
+    setLoginId('john.doe@aeroleave.com');
     setPassword('demo123');
     // Simulate typing/submitting visually for a split second
     setTimeout(() => {
-      login({ role: 'admin', employeeId: 'admin-demo', email: 'admin@aeroleave.com', name: 'Admin Demo' });
+      login({ role: 'admin', employeeId: 'EMP-2026-0003', email: 'john.doe@aeroleave.com', name: 'John Doe' });
       localStorage.setItem('demoTour', 'true');
       navigate('/employees');
     }, 600);
   };
 
   const handleEmployeeDemo = () => {
-    setLoginId('employee@aeroleave.com');
+    setLoginId('anushka@aeroleave.com');
     setPassword('demo123');
     setTimeout(() => {
-      login({ role: 'employee', employeeId: 'emp-demo', email: 'employee@aeroleave.com', name: 'Employee Demo' });
+      login({ role: 'employee', employeeId: 'EMP-2026-0001', email: 'anushka@aeroleave.com', name: 'Anushka Ghosh' });
       navigate('/employees');
     }, 600);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="glass-card w-full max-w-[400px] p-8">
+    <div className="min-h-screen flex items-center justify-center aurora-bg p-4 relative overflow-hidden">
+      <div className="glass-card w-full max-w-md p-8 z-10">
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-white text-lg font-bold shadow-sm mx-auto mb-4 tracking-tight">
             HR

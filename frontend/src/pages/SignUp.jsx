@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import confetti from 'canvas-confetti';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -8,21 +9,47 @@ export default function SignUp() {
     email: '',
     department: 'Engineering',
     role: 'Employee',
-    password: ''
+    password: '',
+    employeeId: ''
   });
+  const [passwordStrength, setPasswordStrength] = useState(0);
+
+  useEffect(() => {
+    const year = new Date().getFullYear();
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    setFormData(prev => ({ ...prev, employeeId: `EMP-${year}-${randomNum}` }));
+  }, []);
 
   const handleChange = (e) => {
-    setFormData({...formData, [e.target.name]: e.target.value});
+    const { name, value } = e.target;
+    setFormData({...formData, [name]: value});
+    if (name === 'password') {
+      let strength = 0;
+      if (value.length > 5) strength += 1;
+      if (value.length > 8) strength += 1;
+      if (/[A-Z]/.test(value)) strength += 1;
+      if (/[0-9]/.test(value)) strength += 1;
+      if (/[^A-Za-z0-9]/.test(value)) strength += 1;
+      setPasswordStrength(strength);
+    }
   };
 
   const handleRegister = (e) => {
     e.preventDefault();
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#7BC9F5', '#FFECA1', '#ffffff']
+    });
     // Mock registration process
-    alert(`Employee ${formData.firstName} Registered Successfully!`);
+    setTimeout(() => {
+      alert(`Employee ${formData.firstName} Registered Successfully!`);
+    }, 500);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 py-12 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center aurora-bg p-4 py-12 relative overflow-hidden">
       <div className="glass-card w-full max-w-2xl p-8 md:p-10 z-10">
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-white text-lg font-bold shadow-sm mx-auto mb-4 tracking-tight">
@@ -44,6 +71,11 @@ export default function SignUp() {
               </div>
             </div>
             <span className="text-xs text-textSecondary mt-2.5 font-medium uppercase tracking-wider">Profile Photo</span>
+          </div>
+
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-textPrimary mb-1.5">Employee ID (Auto-generated)</label>
+            <input type="text" name="employeeId" value={formData.employeeId} readOnly className="input-field bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -85,6 +117,12 @@ export default function SignUp() {
             <div>
               <label className="block text-sm font-medium text-textPrimary mb-1.5">Temporary Password</label>
               <input type="password" name="password" onChange={handleChange} className="input-field" placeholder="••••••••" required />
+              <div className="mt-2 h-1.5 w-full bg-gray-200 rounded-full overflow-hidden flex">
+                <div className={`h-full transition-all duration-300 ${passwordStrength > 0 ? (passwordStrength < 3 ? 'bg-red-400 w-1/3' : passwordStrength < 5 ? 'bg-yellow-400 w-2/3' : 'bg-green-400 w-full') : 'w-0'}`}></div>
+              </div>
+              <p className="text-xs text-textSecondary mt-1">
+                {passwordStrength === 0 ? '' : passwordStrength < 3 ? 'Weak - Add numbers & symbols' : passwordStrength < 5 ? 'Good - Add more characters' : 'Strong Password'}
+              </p>
             </div>
           </div>
 

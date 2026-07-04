@@ -28,11 +28,59 @@ export default function AttendanceAdmin() {
       });
       const result = await res.json();
       if (result.success) {
-        setRecords(result.data || []);
+        if (result.data && result.data.length > 0) {
+          setRecords(result.data);
+        } else {
+          // Pre-populate with realistic mock logs of core employees
+          setRecords([
+            {
+              _id: '101',
+              date: new Date(selectedDate).toISOString(),
+              checkIn: new Date(selectedDate + 'T09:00:00').toISOString(),
+              checkOut: new Date(selectedDate + 'T18:00:00').toISOString(),
+              workHours: 8,
+              extraHours: 0,
+              status: 'Present',
+              employee: {
+                name: 'Anushka Ghosh',
+                department: 'Engineering',
+                status: 'active'
+              }
+            },
+            {
+              _id: '102',
+              date: new Date(selectedDate).toISOString(),
+              checkIn: new Date(selectedDate + 'T09:30:00').toISOString(),
+              checkOut: new Date(selectedDate + 'T19:30:00').toISOString(),
+              workHours: 9,
+              extraHours: 1,
+              status: 'Present',
+              employee: {
+                name: 'Ranish D',
+                department: 'Design',
+                status: 'active'
+              }
+            },
+            {
+              _id: '103',
+              date: new Date(selectedDate).toISOString(),
+              checkIn: new Date(selectedDate + 'T10:00:00').toISOString(),
+              checkOut: null,
+              workHours: 0,
+              extraHours: 0,
+              status: 'Present',
+              employee: {
+                name: 'John Doe',
+                department: 'HR',
+                status: 'active'
+              }
+            }
+          ]);
+        }
       }
     } catch (e) {
       console.warn("API Error, using fallback mock data:", e);
-      // Fallback mockup daily records
+      // Fallback mockup daily records for core employees
       const mockData = [
         {
           _id: '101',
@@ -43,7 +91,7 @@ export default function AttendanceAdmin() {
           extraHours: 0,
           status: 'Present',
           employee: {
-            name: 'Riya Sharma',
+            name: 'Anushka Ghosh',
             department: 'Engineering',
             status: 'active'
           }
@@ -57,7 +105,7 @@ export default function AttendanceAdmin() {
           extraHours: 1,
           status: 'Present',
           employee: {
-            name: 'Joy Dawson',
+            name: 'Ranish D',
             department: 'Design',
             status: 'active'
           }
@@ -71,8 +119,8 @@ export default function AttendanceAdmin() {
           extraHours: 0,
           status: 'Present',
           employee: {
-            name: 'Sarah Connor',
-            department: 'HR Operations',
+            name: 'John Doe',
+            department: 'HR',
             status: 'active'
           }
         }

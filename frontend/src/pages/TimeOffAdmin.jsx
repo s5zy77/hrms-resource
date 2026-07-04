@@ -33,7 +33,43 @@ const TimeOffAdmin = () => {
       const response = await fetch('/api/leave/all');
       const result = await response.json();
       if (result.success) {
-        setRequests(result.data);
+        if (result.data && result.data.length > 0) {
+          setRequests(result.data);
+        } else {
+          // Pre-populate with realistic mock requests for presentation
+          setRequests([
+            {
+              _id: '1',
+              employee: { name: 'Anushka Ghosh', employeeId: 'EMP-2026-0001' },
+              type: 'Paid',
+              startDate: '2026-07-06',
+              endDate: '2026-07-08',
+              allocationDays: 3,
+              status: 'Pending',
+              attachment: null
+            },
+            {
+              _id: '2',
+              employee: { name: 'Ranish D', employeeId: 'EMP-2026-0002' },
+              type: 'Sick',
+              startDate: '2026-07-15',
+              endDate: '2026-07-16',
+              allocationDays: 2,
+              status: 'Approved',
+              attachment: 'medical_excuse.pdf'
+            },
+            {
+              _id: '3',
+              employee: { name: 'John Doe', employeeId: 'EMP-2026-0003' },
+              type: 'Unpaid',
+              startDate: '2026-07-22',
+              endDate: '2026-07-24',
+              allocationDays: 3,
+              status: 'Pending',
+              attachment: null
+            }
+          ]);
+        }
       }
     } catch (error) {
       console.error('Error fetching admin leave requests:', error);
@@ -75,49 +111,54 @@ const TimeOffAdmin = () => {
     }
   };
 
-  const openActionModal = (id, action) => {
-    setActionModal({
-      isOpen: true,
-      requestId: id,
-      actionType: action,
-      comment: ''
-    });
-  };
-
-  const closeActionModal = () => {
-    setActionModal({ isOpen: false, requestId: null, actionType: null, comment: '' });
-  };
-
-  const confirmAction = async () => {
-    const { requestId: id, actionType: action, comment } = actionModal;
-    if (!id || !action) return;
-
-    try {
-      const response = await fetch(`/api/leave/${id}/${action}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adminComment: comment })
-      });
-      const result = await response.json();
-      if (result.success) {
-        setMessage(`Request successfully ${action === 'approve' ? 'approved' : 'rejected'}.`);
-        fetchRequests();
-      } else {
-        setMessage(result.message || 'Action failed.');
+  const handleApprove = async (id) => {
+    if (window.confirm("Are you sure you want to Approve this leave request?")) {
+      try {
+        const response = await fetch(`/api/leave/${id}/approve`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ adminComment: 'Approved via Quick Action' })
+        });
+        const result = await response.json();
+        if (result.success) {
+          alert("Request successfully approved!");
+          fetchRequests();
+        } else {
+          alert(result.message || 'Action failed.');
+        }
+      } catch (error) {
+        console.error(`Error processing leave approve:`, error);
+        setRequests(prev =>
+          prev.map(r => (r._id === id ? { ...r, status: 'Approved' } : r))
+        );
+        alert("Mock Request successfully Approved.");
       }
-    } catch (error) {
-      console.error(`Error processing leave ${action}:`, error);
-      // Mock action state local update
-      setRequests(prev =>
-        prev.map(r => (r._id === id ? { 
-          ...r, 
-          status: action === 'approve' ? 'Approved' : 'Rejected',
-          adminComment: comment 
-        } : r))
-      );
-      setMessage(`Mock Request successfully ${action === 'approve' ? 'Approved' : 'Rejected'}.`);
-    } finally {
-      closeActionModal();
+    }
+  };
+
+  const handleReject = async (id) => {
+    const reason = window.prompt("Enter a reason for rejection (optional):");
+    if (reason !== null) {
+      try {
+        const response = await fetch(`/api/leave/${id}/reject`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ adminComment: reason || 'Rejected via Quick Action' })
+        });
+        const result = await response.json();
+        if (result.success) {
+          alert("Request successfully rejected!");
+          fetchRequests();
+        } else {
+          alert(result.message || 'Action failed.');
+        }
+      } catch (error) {
+        console.error(`Error processing leave reject:`, error);
+        setRequests(prev =>
+          prev.map(r => (r._id === id ? { ...r, status: 'Rejected', adminComment: reason } : r))
+        );
+        alert("Mock Request successfully Rejected.");
+      }
     }
   };
 
@@ -284,14 +325,14 @@ const TimeOffAdmin = () => {
                         {r.status === 'Pending' ? (
                           <div style={styles.actionGroup}>
                             <button
-                              onClick={() => openActionModal(r._id, 'approve')}
+                              onClick={() => handleApprove(r._id)}
                               style={styles.approveBtn}
                               title="Approve Leave"
                             >
                               🟢 Approve
                             </button>
                             <button
-                              onClick={() => openActionModal(r._id, 'reject')}
+                              onClick={() => handleReject(r._id)}
                               style={styles.rejectBtn}
                               title="Reject Leave"
                             >
@@ -614,7 +655,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1000
+    zIndex: 99999
   },
   modalContent: {
     backgroundColor: '#fff',

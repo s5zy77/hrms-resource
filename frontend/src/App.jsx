@@ -15,7 +15,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <div className="min-h-screen">
+        <div className="min-h-screen aurora-bg">
           <Navbar />
           <div className="pt-16">
             <Routes>
