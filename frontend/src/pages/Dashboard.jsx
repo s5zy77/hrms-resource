@@ -12,6 +12,12 @@ const mockEmployees = [
   { id: 4, name: 'Jane Smith', department: 'Marketing', status: 'busy', avatar: 'JS', email: 'jane.smith@aeroleave.com', employeeId: 'EMP-2026-0004', phone: '+1 (555) 765-4321', joiningDate: '2025-06-01', timezone: 'America/Los_Angeles', location: 'Los Angeles, USA' },
   { id: 5, name: 'Alice Johnson', department: 'Sales', status: 'online', avatar: 'AJ', email: 'alice.j@aeroleave.com', employeeId: 'EMP-2026-0005', phone: '+44 20 7946 0958', joiningDate: '2025-09-12', timezone: 'Europe/London', location: 'London, UK' },
   { id: 6, name: 'Bob Brown', department: 'Engineering', status: 'offline', avatar: 'BB', email: 'bob.brown@aeroleave.com', employeeId: 'EMP-2026-0006', phone: '+49 30 901820', joiningDate: '2024-11-20', timezone: 'Europe/Berlin', location: 'Berlin, Germany' },
+  { id: 7, name: 'Priya Sharma', department: 'Product', status: 'online', avatar: 'PS', email: 'priya.sharma@aeroleave.com', employeeId: 'EMP-2026-0007', phone: '+91 99887 76655', joiningDate: '2024-07-22', timezone: 'Asia/Kolkata', location: 'Mumbai, India' },
+  { id: 8, name: 'Carlos Mendez', department: 'Engineering', status: 'online', avatar: 'CM', email: 'carlos.m@aeroleave.com', employeeId: 'EMP-2026-0008', phone: '+52 55 1234 5678', joiningDate: '2025-01-10', timezone: 'America/Mexico_City', location: 'Mexico City, Mexico' },
+  { id: 9, name: 'Yuki Tanaka', department: 'Finance', status: 'busy', avatar: 'YT', email: 'yuki.t@aeroleave.com', employeeId: 'EMP-2026-0009', phone: '+81 3-1234-5678', joiningDate: '2024-09-05', timezone: 'Asia/Tokyo', location: 'Tokyo, Japan' },
+  { id: 10, name: 'Lena Müller', department: 'Legal', status: 'online', avatar: 'LM', email: 'lena.m@aeroleave.com', employeeId: 'EMP-2026-0010', phone: '+49 89 1234567', joiningDate: '2023-11-30', timezone: 'Europe/Berlin', location: 'Munich, Germany' },
+  { id: 11, name: 'David Okafor', department: 'Operations', status: 'offline', avatar: 'DO', email: 'david.o@aeroleave.com', employeeId: 'EMP-2026-0011', phone: '+234 801 234 5678', joiningDate: '2025-03-18', timezone: 'Africa/Lagos', location: 'Lagos, Nigeria' },
+  { id: 12, name: 'Sophie Laurent', department: 'Marketing', status: 'online', avatar: 'SL', email: 'sophie.l@aeroleave.com', employeeId: 'EMP-2026-0012', phone: '+33 1 23 45 67 89', joiningDate: '2024-06-14', timezone: 'Europe/Paris', location: 'Paris, France' },
 ];
 
 export default function Dashboard() {

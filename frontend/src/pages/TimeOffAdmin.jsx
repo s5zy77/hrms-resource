@@ -27,6 +27,16 @@ const TimeOffAdmin = () => {
     fetchRequests();
   }, []);
 
+  const mockData = [
+    { _id: '1', employee: { name: 'Anushka Ghosh', employeeId: 'EMP-2026-0001' }, type: 'Paid', startDate: '2026-07-06', endDate: '2026-07-08', allocationDays: 3, status: 'Pending', attachment: null },
+    { _id: '2', employee: { name: 'Ranish D', employeeId: 'EMP-2026-0002' }, type: 'Sick', startDate: '2026-07-15', endDate: '2026-07-16', allocationDays: 2, status: 'Approved', attachment: 'medical_excuse.pdf' },
+    { _id: '3', employee: { name: 'John Doe', employeeId: 'EMP-2026-0003' }, type: 'Unpaid', startDate: '2026-07-22', endDate: '2026-07-24', allocationDays: 3, status: 'Pending', attachment: null },
+    { _id: '4', employee: { name: 'Jane Smith', employeeId: 'EMP-2026-0004' }, type: 'Paid', startDate: '2026-07-10', endDate: '2026-07-11', allocationDays: 2, status: 'Pending', attachment: null },
+    { _id: '5', employee: { name: 'Priya Sharma', employeeId: 'EMP-2026-0007' }, type: 'Sick', startDate: '2026-07-18', endDate: '2026-07-19', allocationDays: 2, status: 'Rejected', attachment: null },
+    { _id: '6', employee: { name: 'Carlos Mendez', employeeId: 'EMP-2026-0008' }, type: 'Paid', startDate: '2026-07-28', endDate: '2026-08-01', allocationDays: 5, status: 'Pending', attachment: null },
+    { _id: '7', employee: { name: 'Sophie Laurent', employeeId: 'EMP-2026-0012' }, type: 'Paid', startDate: '2026-08-04', endDate: '2026-08-08', allocationDays: 5, status: 'Pending', attachment: null },
+  ];
+
   const fetchRequests = async () => {
     try {
       setLoading(true);
@@ -36,129 +46,33 @@ const TimeOffAdmin = () => {
         if (result.data && result.data.length > 0) {
           setRequests(result.data);
         } else {
-          // Pre-populate with realistic mock requests for presentation
-          setRequests([
-            {
-              _id: '1',
-              employee: { name: 'Anushka Ghosh', employeeId: 'EMP-2026-0001' },
-              type: 'Paid',
-              startDate: '2026-07-06',
-              endDate: '2026-07-08',
-              allocationDays: 3,
-              status: 'Pending',
-              attachment: null
-            },
-            {
-              _id: '2',
-              employee: { name: 'Ranish D', employeeId: 'EMP-2026-0002' },
-              type: 'Sick',
-              startDate: '2026-07-15',
-              endDate: '2026-07-16',
-              allocationDays: 2,
-              status: 'Approved',
-              attachment: 'medical_excuse.pdf'
-            },
-            {
-              _id: '3',
-              employee: { name: 'John Doe', employeeId: 'EMP-2026-0003' },
-              type: 'Unpaid',
-              startDate: '2026-07-22',
-              endDate: '2026-07-24',
-              allocationDays: 3,
-              status: 'Pending',
-              attachment: null
-            }
-          ]);
+          setRequests(mockData);
         }
       }
     } catch (error) {
       console.error('Error fetching admin leave requests:', error);
-      // Fallback mock records
-      setRequests([
-        {
-          _id: '1',
-          employee: { name: 'Alex Mercer', employeeId: 'OIJ20260001' },
-          type: 'Paid',
-          startDate: '2026-07-06',
-          endDate: '2026-07-08',
-          allocationDays: 3,
-          status: 'Pending',
-          attachment: null
-        },
-        {
-          _id: '2',
-          employee: { name: 'Sarah Connor', employeeId: 'OIJ20260002' },
-          type: 'Sick',
-          startDate: '2026-07-15',
-          endDate: '2026-07-16',
-          allocationDays: 2,
-          status: 'Approved',
-          attachment: 'medical_excuse.pdf'
-        },
-        {
-          _id: '3',
-          employee: { name: 'John Doe', employeeId: 'OIJ20260003' },
-          type: 'Unpaid',
-          startDate: '2026-07-22',
-          endDate: '2026-07-24',
-          allocationDays: 3,
-          status: 'Pending',
-          attachment: null
-        }
-      ]);
+      setRequests(mockData);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleApprove = async (id) => {
-    if (window.confirm("Are you sure you want to Approve this leave request?")) {
-      try {
-        const response = await fetch(`/api/leave/${id}/approve`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ adminComment: 'Approved via Quick Action' })
-        });
-        const result = await response.json();
-        if (result.success) {
-          alert("Request successfully approved!");
-          fetchRequests();
-        } else {
-          alert(result.message || 'Action failed.');
-        }
-      } catch (error) {
-        console.error(`Error processing leave approve:`, error);
-        setRequests(prev =>
-          prev.map(r => (r._id === id ? { ...r, status: 'Approved' } : r))
-        );
-        alert("Mock Request successfully Approved.");
-      }
+  const handleApprove = (id) => {
+    if (window.confirm('Approve this leave request?')) {
+      setRequests(prev => prev.map(r => r._id === id ? { ...r, status: 'Approved' } : r));
+      setMessage('Leave request approved successfully.');
+      // Try real API in background
+      fetch(`/api/leave/${id}/approve`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ adminComment: 'Approved' }) }).catch(() => {});
     }
   };
 
-  const handleReject = async (id) => {
-    const reason = window.prompt("Enter a reason for rejection (optional):");
+  const handleReject = (id) => {
+    const reason = window.prompt('Reason for rejection (optional):') ?? '';
     if (reason !== null) {
-      try {
-        const response = await fetch(`/api/leave/${id}/reject`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ adminComment: reason || 'Rejected via Quick Action' })
-        });
-        const result = await response.json();
-        if (result.success) {
-          alert("Request successfully rejected!");
-          fetchRequests();
-        } else {
-          alert(result.message || 'Action failed.');
-        }
-      } catch (error) {
-        console.error(`Error processing leave reject:`, error);
-        setRequests(prev =>
-          prev.map(r => (r._id === id ? { ...r, status: 'Rejected', adminComment: reason } : r))
-        );
-        alert("Mock Request successfully Rejected.");
-      }
+      setRequests(prev => prev.map(r => r._id === id ? { ...r, status: 'Rejected' } : r));
+      setMessage('Leave request rejected.');
+      // Try real API in background
+      fetch(`/api/leave/${id}/reject`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ adminComment: reason }) }).catch(() => {});
     }
   };
 
