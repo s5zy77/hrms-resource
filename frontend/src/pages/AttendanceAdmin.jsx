@@ -31,7 +31,7 @@ export default function AttendanceAdmin() {
         if (result.data && result.data.length > 0) {
           setRecords(result.data);
         } else {
-          // Pre-populate with realistic mock logs of core employees
+          // Pre-populate with realistic mock logs of core employees and extended roster
           setRecords([
             {
               _id: '101',
@@ -72,6 +72,91 @@ export default function AttendanceAdmin() {
               employee: {
                 name: 'John Doe',
                 department: 'HR',
+                status: 'active'
+              }
+            },
+            // Additional roster members
+            {
+              _id: '104',
+              date: new Date(selectedDate).toISOString(),
+              checkIn: new Date(selectedDate + 'T08:45:00').toISOString(),
+              checkOut: new Date(selectedDate + 'T17:45:00').toISOString(),
+              workHours: 8,
+              extraHours: 0,
+              status: 'Present',
+              employee: {
+                name: 'Priya Sharma',
+                department: 'Product',
+                status: 'active'
+              }
+            },
+            {
+              _id: '105',
+              date: new Date(selectedDate).toISOString(),
+              checkIn: new Date(selectedDate + 'T09:15:00').toISOString(),
+              checkOut: new Date(selectedDate + 'T18:15:00').toISOString(),
+              workHours: 8,
+              extraHours: 0,
+              status: 'Present',
+              employee: {
+                name: 'Carlos Mendez',
+                department: 'Engineering',
+                status: 'active'
+              }
+            },
+            {
+              _id: '106',
+              date: new Date(selectedDate).toISOString(),
+              checkIn: new Date(selectedDate + 'T09:05:00').toISOString(),
+              checkOut: new Date(selectedDate + 'T18:05:00').toISOString(),
+              workHours: 8,
+              extraHours: 0,
+              status: 'Present',
+              employee: {
+                name: 'Yuki Tanaka',
+                department: 'Finance',
+                status: 'active'
+              }
+            },
+            {
+              _id: '107',
+              date: new Date(selectedDate).toISOString(),
+              checkIn: new Date(selectedDate + 'T09:20:00').toISOString(),
+              checkOut: new Date(selectedDate + 'T18:20:00').toISOString(),
+              workHours: 8,
+              extraHours: 0,
+              status: 'Present',
+              employee: {
+                name: 'Lena Müller',
+                department: 'Legal',
+                status: 'active'
+              }
+            },
+            {
+              _id: '108',
+              date: new Date(selectedDate).toISOString(),
+              checkIn: new Date(selectedDate + 'T08:55:00').toISOString(),
+              checkOut: new Date(selectedDate + 'T17:55:00').toISOString(),
+              workHours: 8,
+              extraHours: 0,
+              status: 'Present',
+              employee: {
+                name: 'David Okafor',
+                department: 'Operations',
+                status: 'active'
+              }
+            },
+            {
+              _id: '109',
+              date: new Date(selectedDate).toISOString(),
+              checkIn: new Date(selectedDate + 'T09:10:00').toISOString(),
+              checkOut: new Date(selectedDate + 'T18:10:00').toISOString(),
+              workHours: 8,
+              extraHours: 0,
+              status: 'Present',
+              employee: {
+                name: 'Sophie Laurent',
+                department: 'Marketing',
                 status: 'active'
               }
             }
