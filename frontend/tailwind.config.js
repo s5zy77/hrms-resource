@@ -9,7 +9,7 @@ export default {
       colors: {
         primary: '#7BC9F5',       // Soft dreamy sky blue
         primaryHover: '#5AB8ED',
-        surface: '#FFFFFF/90',    // Slightly transparent surface
+        surface: '#FFFFFF',       // Solid surface
         background: '#F0F9FF',    // Soft dreamy blueish-white background
         textPrimary: '#1E293B',
         textSecondary: '#64748B',
