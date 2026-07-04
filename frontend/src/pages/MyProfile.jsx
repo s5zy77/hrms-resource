@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ResumeTab from '../components/ResumeTab';
 
 export default function MyProfile() {
   const [activeTab, setActiveTab] = useState('resume');
@@ -66,10 +67,7 @@ export default function MyProfile() {
       {/* Tab Content Areas */}
       <div className="glass-card p-8 min-h-[400px]">
         {activeTab === 'resume' && (
-          <div className="opacity-100 transition-opacity duration-300">
-            <h2 className="text-xl font-bold text-textPrimary mb-4 tracking-tight">Professional Resume</h2>
-            <p className="text-textSecondary text-sm">Resume content sections (Skills, About) will be built in the next commit.</p>
-          </div>
+          <ResumeTab />
         )}
 
         {activeTab === 'private' && (
