@@ -10,13 +10,6 @@ const TimeOffAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   
-  // Action Modal State
-  const [actionModal, setActionModal] = useState({
-    isOpen: false,
-    requestId: null,
-    actionType: null, // 'approve' | 'reject'
-    comment: ''
-  });
 
   // Allocation forms state
   const [allocEmployeeId, setAllocEmployeeId] = useState('');
@@ -309,34 +302,6 @@ const TimeOffAdmin = () => {
         </div>
       )}
 
-      {/* Action Modal with Comment Field */}
-      {actionModal.isOpen && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalContent}>
-            <h3 style={styles.sectionTitle}>
-              {actionModal.actionType === 'approve' ? 'Approve Leave Request' : 'Reject Leave Request'}
-            </h3>
-            <div style={styles.fieldGroup}>
-              <label style={styles.label}>Admin Comment (Optional)</label>
-              <textarea
-                placeholder="Enter a reason or comment..."
-                value={actionModal.comment}
-                onChange={(e) => setActionModal({ ...actionModal, comment: e.target.value })}
-                style={{ ...styles.input, minHeight: '80px', resize: 'vertical' }}
-              />
-            </div>
-            <div style={styles.modalActions}>
-              <button onClick={closeActionModal} style={styles.cancelBtn}>Cancel</button>
-              <button 
-                onClick={confirmAction} 
-                style={actionModal.actionType === 'approve' ? styles.approveBtnModal : styles.rejectBtnModal}
-              >
-                Confirm {actionModal.actionType === 'approve' ? 'Approval' : 'Rejection'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

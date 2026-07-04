@@ -9,14 +9,23 @@ export default function MyProfile() {
   const [activeTab, setActiveTab] = useState('resume');
   const [localTime, setLocalTime] = useState('');
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
-  
-  const [profileData, setProfileData] = useState({
+
+  const defaultProfile = {
     name: 'John Doe',
     role: 'Senior Engineering Manager',
-    email: 'john.doe@aeroleave.com',
+    email: 'john.doe@nexus.com',
     phone: '+1 (555) 019-2834',
     location: 'San Francisco, CA',
     avatar: 'JD'
+  };
+
+  const [profileData, setProfileData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('myProfile');
+      return saved ? JSON.parse(saved) : defaultProfile;
+    } catch {
+      return defaultProfile;
+    }
   });
 
   // Modal editing form state inline
@@ -53,15 +62,19 @@ export default function MyProfile() {
 
   const handleSaveProfileSubmit = (e) => {
     e.preventDefault();
-    setProfileData(prev => ({
-      ...prev,
+    const updated = {
+      ...profileData,
       name: editName,
       role: editRole,
       phone: editPhone,
       location: editLocation
-    }));
+    };
+    setProfileData(updated);
+    try {
+      localStorage.setItem('myProfile', JSON.stringify(updated));
+    } catch {}
     setIsEditProfileOpen(false);
-    alert('Profile updated successfully!');
+    alert('Profile saved successfully!');
   };
 
   const tabs = [
