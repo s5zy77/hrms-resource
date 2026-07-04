@@ -24,56 +24,54 @@ export default function AttendanceEmployee() {
 
   const fetchLogs = async () => {
     setLoading(true);
+
+    // Generate 20 days of mock logs for the current month
+    const buildMockData = () => {
+      const logs = [];
+      const workdays = [1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 15, 16, 17, 18, 21, 22, 23, 24, 25, 28];
+      workdays.forEach((day, i) => {
+        const isHalfday = day === 10 || day === 22;
+        const hasOvertime = day === 4 || day === 11 || day === 18;
+        const checkInHour = 9 + (i % 2 === 0 ? 0 : 0);
+        const checkInMin = [0, 5, 10, 15, 20, 0, 5, 30, 0, 10][i % 10];
+        const checkOutHour = isHalfday ? 13 : (hasOvertime ? 20 : 18);
+        const workHrs = isHalfday ? 3.5 : (hasOvertime ? 10 : 8);
+        const extraHrs = hasOvertime ? 2 : 0;
+        logs.push({
+          _id: String(i + 1),
+          date: new Date(currentYear, currentMonth, day).toISOString(),
+          checkIn: new Date(currentYear, currentMonth, day, checkInHour, checkInMin).toISOString(),
+          checkOut: new Date(currentYear, currentMonth, day, checkOutHour, 0).toISOString(),
+          workHours: workHrs,
+          extraHours: extraHrs,
+          status: isHalfday ? 'Halfday' : 'Present'
+        });
+      });
+      return logs;
+    };
+
     try {
       const startDate = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
       const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0];
 
       const res = await fetch(`/api/attendance/my?employeeId=${employeeId}&startDate=${startDate}&endDate=${endDate}`, {
-        headers: {
-          'x-employee-id': employeeId
-        }
+        headers: { 'x-employee-id': employeeId }
       });
       const result = await res.json();
-      if (result.success) {
-        setRecords(result.data || []);
+      if (result.success && result.data && result.data.length > 0) {
+        setRecords(result.data);
+      } else {
+        // API empty — use rich mock data
+        setRecords(buildMockData());
       }
     } catch (e) {
-      console.warn("API Error, using fallback mock data:", e);
-      // Fallback mockup data for dashboard testing
-      const mockData = [
-        {
-          _id: '1',
-          date: new Date(currentYear, currentMonth, 4).toISOString(),
-          checkIn: new Date(currentYear, currentMonth, 4, 9, 0).toISOString(),
-          checkOut: new Date(currentYear, currentMonth, 4, 18, 0).toISOString(),
-          workHours: 8,
-          extraHours: 0,
-          status: 'Present'
-        },
-        {
-          _id: '2',
-          date: new Date(currentYear, currentMonth, 3).toISOString(),
-          checkIn: new Date(currentYear, currentMonth, 3, 9, 30).toISOString(),
-          checkOut: new Date(currentYear, currentMonth, 3, 19, 0).toISOString(),
-          workHours: 8.5,
-          extraHours: 0.5,
-          status: 'Present'
-        },
-        {
-          _id: '3',
-          date: new Date(currentYear, currentMonth, 2).toISOString(),
-          checkIn: new Date(currentYear, currentMonth, 2, 10, 0).toISOString(),
-          checkOut: new Date(currentYear, currentMonth, 2, 13, 0).toISOString(),
-          workHours: 2,
-          extraHours: 0,
-          status: 'Halfday'
-        }
-      ];
-      setRecords(mockData);
+      console.warn('API Error, using fallback mock data:', e);
+      setRecords(buildMockData());
     } finally {
       setLoading(false);
     }
   };
+
 
   const handlePrevMonth = () => {
     if (currentMonth === 0) {
