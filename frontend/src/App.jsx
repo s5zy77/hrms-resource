@@ -5,7 +5,7 @@ import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
 import MyProfile from './pages/MyProfile';
 import EmployeeView from './pages/EmployeeView';
-import AttendanceEmployee from './pages/AttendanceEmployee';
+import AttendancePage from './pages/AttendancePage';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -24,7 +24,7 @@ function App() {
               <Route path="/employees" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
               <Route path="/employee/:id" element={<ProtectedRoute><EmployeeView /></ProtectedRoute>} />
-              <Route path="/attendance" element={<ProtectedRoute><AttendanceEmployee /></ProtectedRoute>} />
+              <Route path="/attendance" element={<ProtectedRoute><AttendancePage /></ProtectedRoute>} />
               
               <Route path="/" element={<Navigate to="/employees" replace />} />
             </Routes>
