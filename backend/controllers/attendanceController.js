@@ -1,4 +1,5 @@
 const Attendance = require('../models/Attendance');
+const { calculateWorkHours, calculateExtraHours } = require('../utils/attendanceCalculators');
 
 // POST /api/attendance/check-in
 exports.checkIn = async (req, res) => {
@@ -47,6 +48,75 @@ exports.checkIn = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Internal server error during check-in: ' + error.message
+    });
+  }
+};
+
+// PUT /api/attendance/check-out
+exports.checkOut = async (req, res) => {
+  try {
+    const employeeId = req.body.employeeId || req.user?.employeeId;
+
+    if (!employeeId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Employee ID is required'
+      });
+    }
+
+    const today = new Date();
+    // Normalize date to 00:00:00 to query daily record
+    const normalizedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    // Find today's check-in record
+    const record = await Attendance.findOne({
+      employee: employeeId,
+      date: normalizedDate
+    });
+
+    if (!record) {
+      return res.status(400).json({
+        success: false,
+        message: 'No check-in record found for today. You must check-in first.'
+      });
+    }
+
+    if (record.checkOut) {
+      return res.status(400).json({
+        success: false,
+        message: 'You have already checked out today.'
+      });
+    }
+
+    // Default break time parameter can be configured via request parameters or default to 1 hour
+    const breakTime = req.body.breakTime !== undefined ? parseFloat(req.body.breakTime) : 1;
+    const standardHours = req.body.standardHours !== undefined ? parseFloat(req.body.standardHours) : 8;
+
+    const workHours = calculateWorkHours(record.checkIn, today, breakTime);
+    const extraHours = calculateExtraHours(workHours, standardHours);
+
+    record.checkOut = today;
+    record.workHours = workHours;
+    record.extraHours = extraHours;
+
+    // Status logic: if total work hours is less than 4 hours, mark as Halfday
+    if (workHours > 0 && workHours < 4) {
+      record.status = 'Halfday';
+    } else if (workHours >= 4) {
+      record.status = 'Present';
+    }
+
+    await record.save();
+
+    return res.status(200).json({
+      success: true,
+      data: record,
+      message: 'Check-out successful'
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error during check-out: ' + error.message
     });
   }
 };

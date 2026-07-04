@@ -35,7 +35,8 @@ try {
   // Middlewares not yet scaffolded by Member 1
 }
 
-// Check-in endpoint
+// Check-in & Check-out endpoints
 router.post('/check-in', auth, attendanceController.checkIn);
+router.put('/check-out', auth, attendanceController.checkOut);
 
 module.exports = router;
