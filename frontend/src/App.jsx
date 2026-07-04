@@ -1,5 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
@@ -12,42 +11,6 @@ import NotFound from './pages/NotFound';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
-function AnimatedRoutes() {
-  const location = useLocation();
-  
-  return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/signin" element={<PageWrapper><SignIn /></PageWrapper>} />
-        <Route path="/signup" element={<PageWrapper><SignUp /></PageWrapper>} />
-        
-        {/* Protected Routes */}
-        <Route path="/employees" element={<ProtectedRoute><PageWrapper><Dashboard /></PageWrapper></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><PageWrapper><MyProfile /></PageWrapper></ProtectedRoute>} />
-        <Route path="/employee/:id" element={<ProtectedRoute><PageWrapper><EmployeeView /></PageWrapper></ProtectedRoute>} />
-        <Route path="/attendance" element={<ProtectedRoute><PageWrapper><AttendancePage /></PageWrapper></ProtectedRoute>} />
-        <Route path="/time-off" element={<ProtectedRoute><PageWrapper><TimeOffPage /></PageWrapper></ProtectedRoute>} />
-        
-        <Route path="/" element={<Navigate to="/employees" replace />} />
-        <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
-      </Routes>
-    </AnimatePresence>
-  );
-}
-
-function PageWrapper({ children }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3 }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
 function App() {
   return (
     <BrowserRouter>
@@ -55,7 +18,20 @@ function App() {
         <div className="min-h-screen">
           <Navbar />
           <div className="pt-16">
-            <AnimatedRoutes />
+            <Routes>
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
+              
+              {/* Protected Routes */}
+              <Route path="/employees" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
+              <Route path="/employee/:id" element={<ProtectedRoute><EmployeeView /></ProtectedRoute>} />
+              <Route path="/attendance" element={<ProtectedRoute><AttendancePage /></ProtectedRoute>} />
+              <Route path="/time-off" element={<ProtectedRoute><TimeOffPage /></ProtectedRoute>} />
+              
+              <Route path="/" element={<Navigate to="/employees" replace />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </div>
         </div>
       </AuthProvider>
