@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function SignIn() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,6 +24,7 @@ export default function SignIn() {
     }
 
     // Mock successful login - route to employee dashboard
+    login();
     navigate('/employees');
   };
 
