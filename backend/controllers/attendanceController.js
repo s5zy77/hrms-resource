@@ -120,3 +120,76 @@ exports.checkOut = async (req, res) => {
     });
   }
 };
+
+// GET /api/attendance/my
+exports.getMyAttendance = async (req, res) => {
+  try {
+    const employeeId = req.user?.employeeId;
+    if (!employeeId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Employee ID is required'
+      });
+    }
+
+    const { startDate, endDate } = req.query;
+    let filter = { employee: employeeId };
+
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate);
+      if (endDate) filter.date.$lte = new Date(endDate);
+    }
+
+    const records = await Attendance.find(filter).sort({ date: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: records,
+      message: 'Personal attendance records fetched successfully'
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error fetching personal attendance: ' + error.message
+    });
+  }
+};
+
+// GET /api/attendance/all (Admin only)
+exports.getAllAttendance = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    let filter = {};
+
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate);
+      if (endDate) filter.date.$lte = new Date(endDate);
+    }
+
+    let recordsQuery = Attendance.find(filter).sort({ date: -1 });
+    
+    try {
+      recordsQuery = recordsQuery.populate({
+        path: 'employee',
+        select: 'name department status'
+      });
+    } catch (e) {
+      // Fallback if Employee collection is not registered yet
+    }
+
+    const records = await recordsQuery;
+
+    return res.status(200).json({
+      success: true,
+      data: records,
+      message: 'All attendance records fetched successfully'
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error fetching all attendance: ' + error.message
+    });
+  }
+};

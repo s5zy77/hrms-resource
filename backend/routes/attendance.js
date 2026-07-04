@@ -39,4 +39,8 @@ try {
 router.post('/check-in', auth, attendanceController.checkIn);
 router.put('/check-out', auth, attendanceController.checkOut);
 
+// Retrieval endpoints
+router.get('/my', auth, attendanceController.getMyAttendance);
+router.get('/all', auth, roleCheck(['admin']), attendanceController.getAllAttendance);
+
 module.exports = router;
