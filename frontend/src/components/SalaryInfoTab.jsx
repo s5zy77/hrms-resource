@@ -34,7 +34,7 @@ const SalaryInfoTab = ({ employeeId = 'mock-employee-id', isAdmin = true }) => {
   const fetchSalaryInfo = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/salary/${employeeId}`);
+      const response = await fetch(`https://hrms-resource.onrender.com/api/salary/${employeeId}`);
       const result = await response.json();
       if (result.success && result.data) {
         const data = result.data;
@@ -119,7 +119,7 @@ const SalaryInfoTab = ({ employeeId = 'mock-employee-id', isAdmin = true }) => {
     if (!isAdmin) return;
     try {
       setMessage('Saving...');
-      const response = await fetch(`/api/salary/${employeeId}`, {
+      const response = await fetch(`https://hrms-resource.onrender.com/api/salary/${employeeId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

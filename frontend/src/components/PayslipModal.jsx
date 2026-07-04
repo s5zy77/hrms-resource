@@ -22,7 +22,7 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName = 'Alex Mercer
     try {
       setLoading(true);
       setError('');
-      const response = await fetch(`/api/salary/${employeeId}/payslip?year=${year}&month=${month}`);
+      const response = await fetch(`https://hrms-resource.onrender.com/api/salary/${employeeId}/payslip?year=${year}&month=${month}`);
       const result = await response.json();
       if (result.success) {
         setPayslipData(result.data);

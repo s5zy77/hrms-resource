@@ -30,7 +30,7 @@ const TimeOffAdmin = () => {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/leave/all');
+      const response = await fetch('https://hrms-resource.onrender.com/api/leave/all');
       const result = await response.json();
       if (result.success) {
         if (result.data && result.data.length > 0) {
@@ -114,7 +114,7 @@ const TimeOffAdmin = () => {
   const handleApprove = async (id) => {
     if (window.confirm("Are you sure you want to Approve this leave request?")) {
       try {
-        const response = await fetch(`/api/leave/${id}/approve`, {
+        const response = await fetch(`https://hrms-resource.onrender.com/api/leave/${id}/approve`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ adminComment: 'Approved via Quick Action' })
@@ -140,7 +140,7 @@ const TimeOffAdmin = () => {
     const reason = window.prompt("Enter a reason for rejection (optional):");
     if (reason !== null) {
       try {
-        const response = await fetch(`/api/leave/${id}/reject`, {
+        const response = await fetch(`https://hrms-resource.onrender.com/api/leave/${id}/reject`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ adminComment: reason || 'Rejected via Quick Action' })
@@ -170,7 +170,7 @@ const TimeOffAdmin = () => {
     }
 
     try {
-      const response = await fetch('/api/leave/allocate', {
+      const response = await fetch('https://hrms-resource.onrender.com/api/leave/allocate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

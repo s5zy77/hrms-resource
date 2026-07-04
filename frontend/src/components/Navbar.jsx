@@ -37,7 +37,7 @@ export default function Navbar() {
 
   const fetchTodayStatus = async () => {
     try {
-      const res = await fetch(`/api/attendance/my?employeeId=${employeeId}`, {
+      const res = await fetch(`https://hrms-resource.onrender.com/api/attendance/my?employeeId=${employeeId}`, {
         headers: {
           'x-employee-id': employeeId
         }

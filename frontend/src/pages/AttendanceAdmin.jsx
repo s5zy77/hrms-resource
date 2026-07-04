@@ -21,7 +21,7 @@ export default function AttendanceAdmin() {
       const startDate = selectedDate;
       const endDate = selectedDate;
 
-      const res = await fetch(`/api/attendance/all?startDate=${startDate}&endDate=${endDate}`, {
+      const res = await fetch(`https://hrms-resource.onrender.com/api/attendance/all?startDate=${startDate}&endDate=${endDate}`, {
         headers: {
           'x-employee-id': employeeId
         }

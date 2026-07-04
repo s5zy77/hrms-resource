@@ -28,7 +28,7 @@ export default function AttendanceEmployee() {
       const startDate = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
       const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0];
 
-      const res = await fetch(`/api/attendance/my?employeeId=${employeeId}&startDate=${startDate}&endDate=${endDate}`, {
+      const res = await fetch(`https://hrms-resource.onrender.com/api/attendance/my?employeeId=${employeeId}&startDate=${startDate}&endDate=${endDate}`, {
         headers: {
           'x-employee-id': employeeId
         }

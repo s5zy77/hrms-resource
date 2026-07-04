@@ -23,14 +23,14 @@ const TimeOffEmployee = ({ employeeId = 'mock-employee-id', employeeName = 'Alex
     try {
       setLoading(true);
       // Fetch leaves for currently logged in employee
-      const response = await fetch(`/api/leave/my?employeeId=${employeeId}`);
+      const response = await fetch(`https://hrms-resource.onrender.com/api/leave/my?employeeId=${employeeId}`);
       const result = await response.json();
       if (result.success) {
         setLeaves(result.data);
       }
       
       // Fetch employee balance info
-      const empResponse = await fetch(`/api/employees/${employeeId}`);
+      const empResponse = await fetch(`https://hrms-resource.onrender.com/api/employees/${employeeId}`);
       const empResult = await empResponse.json();
       if (empResult.success && empResult.data) {
         setBalances({
@@ -52,7 +52,7 @@ const TimeOffEmployee = ({ employeeId = 'mock-employee-id', employeeName = 'Alex
 
   const handleApplyLeave = async (leaveForm) => {
     try {
-      const response = await fetch('/api/leave/apply', {
+      const response = await fetch('https://hrms-resource.onrender.com/api/leave/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(leaveForm)
