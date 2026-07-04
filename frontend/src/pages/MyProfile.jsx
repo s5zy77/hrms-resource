@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ResumeTab from '../components/ResumeTab';
+import PrivateInfoTab from '../components/PrivateInfoTab';
 
 export default function MyProfile() {
   const [activeTab, setActiveTab] = useState('resume');
@@ -71,10 +72,7 @@ export default function MyProfile() {
         )}
 
         {activeTab === 'private' && (
-          <div className="opacity-100 transition-opacity duration-300">
-            <h2 className="text-xl font-bold text-textPrimary mb-4 tracking-tight">Private Information</h2>
-            <p className="text-textSecondary text-sm">Emergency contacts and personal details go here.</p>
-          </div>
+          <PrivateInfoTab />
         )}
 
         {activeTab === 'salary' && (
