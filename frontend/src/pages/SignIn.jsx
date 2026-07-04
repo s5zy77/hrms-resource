@@ -1,6 +1,30 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function SignIn() {
+  const navigate = useNavigate();
+  const [loginId, setLoginId] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSignIn = (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!loginId.trim() || !password.trim()) {
+      setError('Please enter both your Login ID and Password.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    // Mock successful login - route to employee dashboard
+    navigate('/employees');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-bgWhite p-4 relative overflow-hidden">
       {/* Decorative background blobs for glassmorphism effect */}
@@ -16,12 +40,20 @@ export default function SignIn() {
           <p className="text-textMuted mt-2 text-sm font-medium">Welcome back to AeroLeave!</p>
         </div>
 
-        <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+        {error && (
+          <div className="mb-6 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-bold text-center shadow-sm">
+            {error}
+          </div>
+        )}
+
+        <form className="space-y-5" onSubmit={handleSignIn}>
           <div>
             <label className="block text-sm font-semibold text-textMain mb-1.5 ml-1">Login ID</label>
             <input 
               type="text" 
               placeholder="e.g. EMP20250001" 
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
               className="input-field bg-white/50 backdrop-blur-sm"
             />
           </div>
@@ -34,11 +66,13 @@ export default function SignIn() {
             <input 
               type="password" 
               placeholder="••••••••" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="input-field bg-white/50 backdrop-blur-sm"
             />
           </div>
 
-          <button type="button" className="btn-primary w-full text-base py-3 mt-4">
+          <button type="submit" className="btn-primary w-full text-base py-3 mt-4">
             Sign In
           </button>
         </form>
