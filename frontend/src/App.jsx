@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import MyProfile from './pages/MyProfile';
 import EmployeeView from './pages/EmployeeView';
 import AttendancePage from './pages/AttendancePage';
+import TimeOffPage from './pages/TimeOffPage';
 import NotFound from './pages/NotFound';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -26,6 +27,7 @@ function AnimatedRoutes() {
         <Route path="/profile" element={<ProtectedRoute><PageWrapper><MyProfile /></PageWrapper></ProtectedRoute>} />
         <Route path="/employee/:id" element={<ProtectedRoute><PageWrapper><EmployeeView /></PageWrapper></ProtectedRoute>} />
         <Route path="/attendance" element={<ProtectedRoute><PageWrapper><AttendancePage /></PageWrapper></ProtectedRoute>} />
+        <Route path="/time-off" element={<ProtectedRoute><PageWrapper><TimeOffPage /></PageWrapper></ProtectedRoute>} />
         
         <Route path="/" element={<Navigate to="/employees" replace />} />
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
